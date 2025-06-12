@@ -1,0 +1,4603 @@
+<script>
+const br = [
+  [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], 
+  [16, 17, 18, 19], [20, 21, 22, 23], [24, 25, 26, 27], [28, 29], 
+  [30, 31, 32, 33], [34, 35, 36, 37], [38, 39, 40, 41], [42, 43, 44, 45], 
+  [46, 47, 48, 49], [50, 51, 52, 53]
+];
+
+const allCards =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53]; //Array.from({ length: 54 }, (_, i) => i);
+
+function logResult(testName, result, expected) {
+    const isError = JSON.stringify(result.play_allowed) !== JSON.stringify(expected.play_allowed);
+    console.log(`%c${testName}:`, `color: ${isError ? 'red' : 'green'}`, result);
+}
+
+function getCombinations(arr, size) {
+    if (size === 1) return arr.map(el => [el]);
+    let combos = [];
+    arr.forEach((el, i) => {
+        let rest = getCombinations(arr.slice(i + 1), size - 1);
+        rest.forEach(combo => combos.push([el, ...combo]));
+    });
+    return combos;
+}
+/*
+// 
+async function testKadiPlay() {
+    
+
+   
+    for (let icard = 0; icard < br.length; icard++) {
+        let cardGroup = br[icard];  
+        console.log(`\n🟢 Testing Group ${icard}:`, cardGroup);
+
+        for (let cIndex = 0; cIndex < cardGroup.length; cIndex++) {
+            let c = cardGroup[cIndex];  
+            
+
+            // 1️⃣ Test c with all other elements in the same array as topCard
+            for (let topCard of cardGroup) {
+                if (c !== topCard) {
+                  //  const result = await kadiPlay(1, allCards, false, false, [c], allCards, false, null, [],1,  topCard);
+                 //   if(JSON.parse(result).play_allowed == 'false'){
+                   //  logResult(`✅ Same Group Test: Play ${c}, TopCard ${topCard}`, result, { play_allowed: true });
+                  // }
+                }
+            }
+
+            for (let size = 1; size <= 4; size++) {
+                let combinations = getCombinations(cardGroup, size);
+                for (let combo of combinations) {
+                    let compatibleTopCard = cardGroup[0];
+                    //const result = await kadiPlay(1, allCards, false, false, combo, allCards, false, null, [],1, compatibleTopCard);
+
+
+                   // if(JSON.parse(result).play_allowed == 'false'){
+                    //   console.log(JSON.parse(result).play_allowed);
+                   // logResult(`✅ ${size}-Card Test: Play ${combo}, TopCard ${compatibleTopCard}`, result, { play_allowed: true });
+                 // }
+                }
+            }
+
+          
+
+            // 3️⃣ Test c with cards *not* in the same array as topCard
+            for (let icard2 = 0; icard2 < br.length; icard2++) {
+                if (icard2 !== icard) {
+                    for (let topCard of br[icard2]) {
+                     //    const result = await kadiPlay(1, allCards, false, false, [c], allCards, false, null, [],1, topCard);
+                       //  if(JSON.parse(result).play_allowed == 'false'){
+                        //logResult(`🚫 Different Group Test: Play ${c}, TopCard ${topCard}`, result, { play_allowed: false });
+                       //}
+                    }
+                }
+            }
+        }
+    }
+}
+// Run the test
+testKadiPlay();
+*/function generateCombinations(arr) {
+    let results = [];
+    
+    function combine(prefix, remaining) {
+        if (prefix.length > 0) results.push(prefix); // Add non-empty subsets
+        for (let i = 0; i < remaining.length; i++) {
+            combine([...prefix, remaining[i]], remaining.slice(i + 1));
+        }
+    }
+
+    combine([], arr);
+    return results;
+}
+
+async function testAllQueenEightCombinations() {
+    const qAnd8s = [12, 13, 14, 15, 16, 17, 18, 19]; // All Qs & 8s
+    const validFollowCards = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]; // Valid end cards
+
+    let testCount = 0;
+    const allCombinations = generateCombinations(qAnd8s);
+    
+    console.log(`🔹 Generated ${allCombinations.length} valid Q & 8 stacks`);
+    
+    for (let stack of allCombinations) {
+        let topCard = stack[0]; // First card as top card
+        testCount++;
+        const result = await kadiPlay(1, allCards, false, false, stack, allCards, false, null, [], 1,topCard);
+        if(stack.length == 8)
+        logResult(`🟢 Test Stack: ${stack}`, result, { play_allowed: true });
+    }
+
+    console.log(`✅ Total Tests Run: ${testCount}`);
+}
+
+// Run the test
+testAllQueenEightCombinations();
+
+function filterValidStacks(allStacks) {
+    let validStacks = [];
+
+    for (let stack of allStacks) {
+        let valid = true;
+
+        // ✅ Check suit rule
+        for (let i = 1; i < stack.length; i++) {
+            if (stack[i] % 4 !== stack[i - 1] % 4) {
+                valid = false; // Suit mismatch
+                break;
+            }
+        }
+
+        // ✅ Check valid ending (must be 30-53)
+        let lastCard = stack[stack.length - 1];
+        if (lastCard < 30 || lastCard > 53) valid = false;
+
+        // ✅ Check for invalid last card (2,3,Joker)
+        if ([2, 3, 28, 29].includes(lastCard)) valid = false;
+
+        if (valid) validStacks.push(stack);
+    }
+
+    return validStacks;
+}
+function getAllOrderedCombinations(arr) {
+    let results = [];
+
+    function permute(prefix, remaining) {
+        if (prefix.length > 0) results.push(prefix); // Save non-empty ordered sequences
+        for (let i = 0; i < remaining.length; i++) {
+            permute([...prefix, remaining[i]], remaining.slice(0, i).concat(remaining.slice(i + 1)));
+        }
+    }
+
+    permute([], arr);
+    return results;
+}
+const qAnd8s = [12, 13, 14, 15, 16, 17, 18, 19];
+const orderedCombinations = getAllOrderedCombinations(qAnd8s);
+// Run filter on all 109,600 stacks
+const validQ8Stacks = filterValidStacks(orderedCombinations);
+
+console.log(`✅ Valid Q & 8 Stacking Sequences: ${validQ8Stacks.length}`); // Expect ~39,045
+
+
+async function kadiPlay(
+  player = null,
+  player_cards = null,
+  cardless = null,
+  kadi = null,
+  player_play = null,
+  ready_cards = null,
+  card_request = null,
+  card_requested = null,
+  lastPlay = null,
+  duelId = null,
+  prev_card = null
+) {
+//console.log(cardless);
+let cr = card_request;
+let crd = card_requested;
+
+//console.log(card_request)
+//console.log(crd)
+let user_id = player; // kadi_ai
+let duel_id = localStorage.getItem('duel_id');
+let hearts = [0, 4, 8, 12, 16, 20, 24, 30, 34, 38, 42, 46, 50];
+let diamonds = [1, 5, 9, 13, 17, 21, 25, 31, 35, 39, 43, 47, 51];
+let flowers = [2, 6, 10, 14, 18, 22, 26, 32, 36, 40, 44, 48, 52];
+let spades = [3, 7, 11, 15, 19, 23, 27, 33, 37, 41, 45, 49, 53];
+
+let allowed_q_hearts = [16, 30, 34, 38, 42, 46, 50];
+let allowed_q_diamonds = [17, 31, 35, 39, 43, 47, 51];
+let allowed_q_flowers = [18, 32, 36, 40, 44, 48, 52];
+let allowed_q_spades = [19, 33, 37, 41, 45, 49, 53];
+
+let allowed_8_hearts = [12, 30, 34, 38, 42, 46, 50];
+let allowed_8_diamonds = [13, 31, 35, 39, 43, 47, 51];
+let allowed_8_flowers = [14, 32, 36, 40, 44, 48, 52];
+let allowed_8_spades = [15, 33, 37, 41, 45, 49, 53];
+
+let allowed_2_hearts = [24, 28, 29];
+let allowed_2_diamonds = [25, 28, 29];
+let allowed_2_flowers = [26, 28, 29];
+let allowed_2_spades = [27, 28, 29];
+
+let allowed_3_hearts = [20, 28, 29];
+let allowed_3_diamonds = [21, 28, 29];
+let allowed_3_flowers = [22, 28, 29];
+let allowed_3_spades = [23, 28, 29];
+let allowed_jk = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
+
+// Load 'kadi_plays' data from localStorage and parse players
+
+let players = [1,2];
+let pl = players.length;
+let lp = players[pl - 1];
+let current_player = players[pl - 1];
+
+players.pop();
+players.unshift(lp);
+
+
+
+
+
+
+let to_play = players[pl - 1];
+let direction = 'forward';
+let active_player = '';
+let player_ask_card = false;
+let action = [];
+
+/*if (!localStorage.getItem('player')) {
+    user_id = localStorage.getItem('userID');
+    //let card_request = localStorage.getItem('card_requests');
+    let player_cards = JSON.parse(localStorage.getItem('player_cards') || '[]');
+    let to_pick = localStorage.getItem('to_pick');
+    let kadi = localStorage.getItem('kadi');
+    let ready_cards = JSON.parse(localStorage.getItem('ready_cards') || '[]');
+    let cardless = localStorage.getItem('cardless');
+    let player_play = JSON.parse(localStorage.getItem('my_play') || '[]');
+
+    let last_play_data = JSON.parse(localStorage.getItem('kadi_plays') || '{}');
+    let last_play = last_play_data.last_play || [];
+    let lpl = last_play.length;
+    let plays = last_play[lpl - 1]?.play || [];
+    let plays_no = last_play.length;
+   // let card_requested = last_play[lpl - 1]?.card_requested || '';*/
+
+
+
+
+
+
+
+
+
+
+card_request = (card_request);
+
+if (player_play[0] === 'picked_card') {
+
+
+    // 
+
+
+
+
+ 
+    // Define action object
+    const action = {
+        fine: 'none',
+        play_allowed: 'true',
+        to_fine: 'none',
+        next_player: to_play,
+        card_request: card_request,
+        card_requested: card_requested,
+        last_play_cards: player_cards,
+        kadi: kadi,
+        cardless: cardless,
+        line: 1402
+    };
+  
+let actionData = { ...action, ready_cards: ready_cards };
+
+  
+  return (JSON.stringify(actionData)); 
+ 
+
+}
+else{
+
+ //card played not picked
+
+let pll = player_play.length;
+
+for (let k = 0; k < pll; k++) {
+  let current_card = parseInt(player_play[k]);
+  
+  if (k === 0) {
+if (card_request === true) {
+      let fine = 'none';
+      let to_fine = 'none';
+
+      if ([0, 1, 2, 3].includes(current_card)) {
+        let play_allowed = true;
+        if (k === pll - 1) {
+          action = {
+            fine: 'none',
+            play_allowed: 'true',
+            to_fine: 'none',
+            next_player: to_play,
+            card_requests: cr,
+            card_requested: crd,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 1450,
+          };
+          break;
+        }
+      } else if (card_requested === 'hearts') {
+        if (hearts.includes(current_card)) {
+          let play_allowed = true;
+          card_request = false;
+          card_requested = '';
+
+          if ([20, 21, 22, 23].includes(current_card)) {
+            fine = 2;
+            to_fine = to_play;
+          } else if ([24, 25, 26, 27].includes(current_card)) {
+            fine = 3;
+            to_fine = to_play;
+          }
+
+          if (k === pll - 1) {
+            action = {
+              fine: fine,
+              play_allowed: 'true',
+              to_fine: to_fine,
+              next_player: to_play,
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1474,
+            };
+            break;
+          } else {
+            let action_b = process_card_request(player_play, players, current_player, to_play);
+            action = Object.assign({}, action_b, {
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1486,
+            });
+            break;
+          }
+        } else {
+          action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 1502,
+          };
+          break;
+        }
+      } else if (card_requested === 'diamonds') {
+        if (diamonds.includes(current_card)) {
+          let play_allowed = true;
+          card_request = false;
+          card_requested = '';
+
+          if ([20, 21, 22, 23].includes(current_card)) {
+            fine = 2;
+            to_fine = to_play;
+          } else if ([24, 25, 26, 27].includes(current_card)) {
+            fine = 3;
+            to_fine = to_play;
+          }
+
+          if (k === pll - 1) {
+            action = {
+              fine: fine,
+              play_allowed: 'true',
+              to_fine: to_fine,
+              next_player: to_play,
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1524,
+            };
+            break;
+          } else {
+            let action_b = process_card_request(player_play, players, current_player, to_play);
+            action = Object.assign({}, action_b, {
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1536,
+            });
+            break;
+          }
+        } else {
+          action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 1551,
+          };
+          break;
+        }
+      } else if (card_requested === 'flowers') {
+        if (flowers.includes(current_card)) {
+          let play_allowed = true;
+          card_request = false;
+          card_requested = '';
+
+          if ([20, 21, 22, 23].includes(current_card)) {
+            fine = 2;
+            to_fine = to_play;
+          } else if ([24, 25, 26, 27].includes(current_card)) {
+            fine = 3;
+            to_fine = to_play;
+          }
+
+          if (k === pll - 1) {
+            action = {
+              fine: fine,
+              play_allowed: 'true',
+              to_fine: to_fine,
+              next_player: to_play,
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1574,
+            };
+            break;
+          } else {
+            let action_b = process_card_request(player_play, players, current_player, to_play);
+            action = Object.assign({}, action_b, {
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1585,
+            });
+            break;
+          }
+        } else {
+          action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 1599,
+          };
+          break;
+        }
+      } else if (card_requested === 'spades') {
+        if (spades.includes(current_card)) {
+          let play_allowed = true;
+          card_request = false;
+          card_requested = '';
+
+          if ([20, 21, 22, 23].includes(current_card)) {
+            fine = 2;
+            to_fine = to_play;
+          } else if ([24, 25, 26, 27].includes(current_card)) {
+            fine = 3;
+            to_fine = to_play;
+          }
+
+          if (k === pll - 1) {
+            action = {
+              fine: fine,
+              play_allowed: 'true',
+              to_fine: to_fine,
+              next_player: to_play,
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1620,
+            };
+            break;
+          } else {
+            let action_b = process_card_request(player_play, players, current_player, to_play);
+            action = Object.assign({}, action_b, {
+              card_requests: card_request,
+              card_requested: card_requested,
+              last_play_cards: player_cards,
+              kadi: kadi,
+              cardless: cardless,
+              line: 1632,
+            });
+            break;
+          }
+        } else {
+          action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 1648,
+          };
+          break;
+        }
+      }
+    }//end o card request
+    else{
+//normal card playing
+card_request = cr;
+card_requested = crd;
+
+if ([0, 1, 2, 3].includes(current_card)) {
+  play_allowed = true;
+  card_ask_perm = true;
+
+  if (k === pll - 1) {
+    action = {
+      fine: 'none',
+      play_allowed: 'true',
+      to_fine: 'none',
+      next_player: to_play,
+      card_requests: card_request,
+      card_requested: card_requested,
+      last_play_cards: player_cards,
+      kadi: kadi,
+      cardless: cardless,
+      line: 1765,
+      prev_card: prev_card
+    };
+  }
+}
+
+if ([4, 5, 6, 7].includes(current_card)) {
+    if ([4, 5, 6, 7, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+ 
+        let ps = players.length - 1;
+
+        //let op = players.shift();
+        //players.push(op);
+        //players.reverse();
+
+        //to_play = players[ps];
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2015,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+          /*      let ps = players.length - 1;
+
+                let op = players.shift();
+                players.push(op);
+                players.reverse();
+
+                let ps2 = players.length - 1;
+
+                to_play = players[ps2];
+*/
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 2054,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2070,
+                    prev_card: prev_card
+                };
+                break;
+            }
+
+
+
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+  /*              let ps = players.length - 1;
+
+                let op = players.shift();
+                players.push(op);
+                players.reverse();
+
+                to_play = players[ps];
+*/
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 2109,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2125,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+  /*              let ps = players.length - 1;
+
+                let op = players.shift();
+                players.push(op);
+                players.reverse();
+
+                to_play = players[ps];
+*/
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 2166,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2182,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+  /*              let ps = players.length - 1;
+
+                let op = players.shift();
+                players.push(op);
+                players.reverse();
+
+                to_play = players[ps];
+*/
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 2221,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2237,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+if ([8, 9, 10, 11].includes(current_card)) {
+    if ([8, 9, 10, 11, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        const pl = players.length;
+        const last_player = players[pl - 1];
+        current_player = players[pl - 1];
+        players.pop();
+        players.unshift(last_player);
+
+        const to_play = players[pl - 1];
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2287,
+                prev_card: prev_card
+            };
+        }
+    }
+ else{ 
+    if (hearts.includes(current_card)) {
+    if (hearts.includes(prev_card)) {
+        const pl = players.length;
+        const last_player = players[pl - 1];
+        current_player = players[pl - 1];
+        players.pop();
+        players.unshift(last_player);
+
+        const to_play = players[pl - 1];
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2334,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2351,
+            prev_card: prev_card
+        };
+        break;
+    }
+} else if (diamonds.includes(current_card)) {
+    if (diamonds.includes(prev_card)) {
+        const pl = players.length;
+        const last_player = players[pl - 1];
+        current_player = players[pl - 1];
+        players.pop();
+        players.unshift(last_player);
+
+        const to_play = players[pl - 1];
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2384,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2400,
+            prev_card: prev_card
+        };
+        break;
+    }
+} else if (flowers.includes(current_card)) {
+    if (flowers.includes(prev_card)) {
+        const pl = players.length;
+        const last_player = players[pl - 1];
+        current_player = players[pl - 1];
+        players.pop();
+        players.unshift(last_player);
+
+        const to_play = players[pl - 1];
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2434,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2451,
+            prev_card: prev_card
+        };
+        break;
+    }
+} else if (spades.includes(current_card)) {
+    if (spades.includes(prev_card)) {
+        const pl = players.length;
+        const last_player = players[pl - 1];
+        current_player = players[pl - 1];
+        players.pop();
+        players.unshift(last_player);
+
+        const to_play = players[pl - 1];
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2486,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2503,
+            prev_card: prev_card
+        };
+        break;
+    }
+}
+}
+}
+
+
+if ([12, 13, 14, 15].includes(current_card)) {
+    if ([12, 13, 14, 15, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2549,
+                prev_card: prev_card
+            };
+        }
+    } 
+ else if (hearts.includes(current_card)) {
+    if (hearts.includes(prev_card)) {
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2587,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2604,
+            prev_card: prev_card
+        };
+        break;
+    }
+} else if (diamonds.includes(current_card)) {
+    if (diamonds.includes(prev_card)) {
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2628,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2645,
+            prev_card: prev_card
+        };
+        break;
+    }
+} else if (flowers.includes(current_card)) {
+    if (flowers.includes(prev_card)) {
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2669,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2686,
+            prev_card: prev_card
+        };
+        break;
+    }
+} else if (spades.includes(current_card)) {
+    if (spades.includes(prev_card)) {
+        play_allowed = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2710,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 2727,
+            prev_card: prev_card
+        };
+        break;
+    }
+}
+}
+
+
+if ([16, 17, 18, 19].includes(current_card)) {
+    if ([16, 17, 18, 19, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2763,
+                prev_card: prev_card
+            };
+        }
+    } else if (hearts.includes(current_card)) {
+        if (hearts.includes(prev_card)) {
+            play_allowed = true;
+            if (k === pll - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: 'true',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2785,
+                    prev_card: prev_card
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: 'false',
+                to_fine: 'self',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2802,
+                prev_card: prev_card
+            };
+            break;
+        }
+    } else if (diamonds.includes(current_card)) {
+        if (diamonds.includes(prev_card)) {
+            play_allowed = true;
+            if (k === pll - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: 'true',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2827,
+                    prev_card: prev_card
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: 'false',
+                to_fine: 'self',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2843,
+                prev_card: prev_card
+            };
+            break;
+        }
+    } else if (flowers.includes(current_card)) {
+        if (flowers.includes(prev_card)) {
+            play_allowed = true;
+            if (k === pll - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: 'true',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2868,
+                    prev_card: prev_card
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: 'false',
+                to_fine: 'self',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2884,
+                prev_card: prev_card
+            };
+            break;
+        }
+    } else if (spades.includes(current_card)) {
+        if (spades.includes(prev_card)) {
+            play_allowed = true;
+            if (k === pll - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: 'true',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 2909,
+                    prev_card: prev_card
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: 'false',
+                to_fine: 'self',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2926,
+                prev_card: prev_card
+            };
+            break;
+        }
+    }
+}
+
+
+if ([20, 21, 22, 23].includes(current_card)) {
+    to_pick = true;
+    if ([20, 21, 22, 23, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        if (k === pll - 1) {
+            fine = 2;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 2965,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3012,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3028,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3052,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3068,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3089,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3105,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3125,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3143,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([24, 25, 26, 27].includes(current_card)) {
+    to_pick = true;
+    if ([24, 25, 26, 27, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        fine = 3;
+        if (k === pll - 1) {
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 3177,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 3;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3205,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3221,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 3;
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3242,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3259,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 3;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3280,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3296,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 3;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3316,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3332,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+if ([28, 29].includes(current_card)) {
+    play_allowed = true;
+
+    if (k === pll - 1) {
+        action = {
+            fine: '5',
+            play_allowed: 'true',
+            to_fine: to_play,
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 3366,
+            prev_card: prev_card
+        };
+    }
+}
+
+if ([30, 31, 32, 33].includes(current_card)) {
+    if ([30, 31, 32, 33, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 3389,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (hearts.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3414,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3429,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (diamonds.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3456,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3470,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3492,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3506,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3527,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3541,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+if ([34, 35, 36, 37].includes(current_card)) {
+    if ([34, 35, 36, 37, 28, 29].includes(prev_card)) {
+        playAllowed = true;
+        cardAskPerm = true;
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 3577,
+                 // prev_card: prevCard
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3599,
+                         // prev_card: prevCard
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3615,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3636,
+                         // prev_card: prevCard
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3653,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3674,
+                         // prev_card: prevCard
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3690,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3710,
+                         // prev_card: prevCard
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'none',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3726,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([38, 39, 40, 41].includes(current_card)) {
+    if ([38, 39, 40, 41, 28, 29].includes(prev_card)) {
+        playAllowed = true;
+        cardAskPerm = true;
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 3758,
+                 // prev_card: prevCard
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3780,
+                         // prev_card: prevCard
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3795,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3815,
+                         // prev_card: prevCard
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3830,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3851,
+                         // prev_card: prevCard
+
+
+
+
+
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3866,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                playAllowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3886,
+                         // prev_card: prevCard
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3902,
+                     // prev_card: prevCard
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+if ([42, 43, 44, 45].includes(current_card)) {
+    if ([42, 43, 44, 45, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 3935,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3957,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 3972,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 3996,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4011,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4032,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4047,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4067,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4083,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([46, 47, 48, 49].includes(current_card)) {
+    if ([46, 47, 48, 49, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 4117,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4139,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4154,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4174,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4189,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4210,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4225,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4245,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4260,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+if ([50, 51, 52, 53].includes(current_card)) {
+    if ([50, 51, 52, 53, 28, 29].includes(prev_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 4298,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(current_card)) {
+            if (hearts.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4321,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4336,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(current_card)) {
+            if (diamonds.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4356,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4371,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(current_card)) {
+            if (flowers.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4392,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4407,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(current_card)) {
+            if (spades.includes(prev_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4427,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4442,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+    }
+
+  }
+else{
+//second card
+
+let prev_card = parseInt(player_play[k - 1]);
+
+if ([0, 1, 2, 3].includes(prev_card)) {
+    if ([0, 1, 2, 3].includes(current_card)) {
+        play_allowed = false;
+
+        action = {
+            fine: 'none',
+            play_allowed: 'true',
+            to_fine: 'none',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 4495,
+            prev_card: prev_card,
+        };
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 4509,
+            prev_card: prev_card,
+        };
+        break;
+    }
+}
+
+if ([4, 5, 6, 7].includes(prev_card)) {
+    if ([4, 5, 6, 7].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        let ps = players.length - 1;
+
+        let op = players[0];
+        players.shift(); // Removes the first player
+        players.reverse(); // Reverses the array
+        players.push(op); // Adds the original first player back
+
+        to_play = players[ps];
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 4544,
+                prev_card: prev_card,
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 4562,
+            prev_card: prev_card,
+        };
+        break;
+    }
+}
+
+if ([8, 9, 10, 11].includes(prev_card)) {
+    if ([8, 9, 10, 11].includes(current_card)) {
+        let pl = players.length;
+        let lp = players[pl - 1];
+        let current_player = players[pl - 1];
+        players.pop(); // Removes the last player
+        players.unshift(lp); // Adds the last player to the front
+
+        to_play = players[pl - 1];
+
+        play_allowed = true;
+        card_ask_perm = true;
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 4602,
+                prev_card: prev_card,
+            };
+        }
+    } else {
+        play_allowed = false;
+
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 4626,
+            prev_card: prev_card,
+        };
+        break;
+    }
+}
+
+if ([12, 13, 14, 15].includes(prev_card)) {
+    if ([12, 13, 14, 15].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 4655,
+                prev_card: prev_card,
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_q_hearts.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4679,
+                        prev_card: prev_card,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4698,
+                    prev_card: prev_card,
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_q_diamonds.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4720,
+                        prev_card: prev_card,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4739,
+                    prev_card: prev_card,
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_q_flowers.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4761,
+                        prev_card: prev_card,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4779,
+                    prev_card: prev_card,
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_q_spades.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4802,
+                        prev_card: prev_card,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4823,
+                    prev_card: prev_card,
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+
+if ([16, 17, 18, 19].includes(prev_card)) {
+    if ([16, 17, 18, 19].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 4856,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_8_hearts.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4882,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4899,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_8_diamonds.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4924,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4942,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_8_flowers.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 4967,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 4984,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_8_spades.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5008,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5027,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([20, 21, 22, 23].includes(prev_card)) {
+    if ([20, 21, 22, 23, 28, 29].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === pll - 1) {
+            let fine = 2;
+            if (current_card === 28 || current_card === 29) {
+                fine = 5;
+            }
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5068,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_2_hearts.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5100,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5117,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_2_diamonds.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5141,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5157,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_2_flowers.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5182,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5198,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_2_spades.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5224,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5240,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+if ([24, 25, 26, 27].includes(prev_card)) {
+    if ([24, 25, 26, 27, 28, 29].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === pll - 1) {
+            fine = 3;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5280,
+                prev_card: prev_card
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_3_hearts.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5310,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5327,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_3_diamonds.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5352,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5370,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_3_flowers.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5396,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5412,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_3_spades.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                        card_requests: card_request,
+                        card_requested: card_requested,
+                        last_play_cards: player_cards,
+                        kadi: kadi,
+                        cardless: cardless,
+                        line: 5436,
+                        prev_card: prev_card
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                    card_requests: card_request,
+                    card_requested: card_requested,
+                    last_play_cards: player_cards,
+                    kadi: kadi,
+                    cardless: cardless,
+                    line: 5453,
+                    prev_card: prev_card
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([28, 29].includes(prev_card)) {
+    if ([20, 21, 22, 23].includes(current_card)) {
+        if (k === pll - 1) {
+            fine = 2;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5489,
+                prev_card: prev_card
+            };
+        }
+        play_allowed = true;
+    } else if ([24, 25, 26, 27].includes(current_card)) {
+        if (k === pll - 1) {
+            fine = 3;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5507,
+                prev_card: prev_card
+            };
+        }
+        play_allowed = true;
+    } else if ([28, 29].includes(current_card)) {
+        if (k === pll - 1) {
+            fine = 5;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5526,
+                prev_card: prev_card
+            };
+        }
+        play_allowed = true;
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 5543,
+            prev_card: prev_card
+        };
+        break;
+    }
+}
+
+
+if ([30, 31, 32, 33].includes(prev_card)) {
+    if ([30, 31, 32, 33].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5569,
+                prev_card: prev_card,
+            };
+        }
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'none',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 5589,
+            prev_card: prev_card,
+        };
+    }
+}
+
+if ([34, 35, 36, 37].includes(prev_card)) {
+    if ([34, 35, 36, 37].includes(current_card)) {
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5610,
+                prev_card: prev_card,
+            };
+        }
+        play_allowed = true;
+        card_ask_perm = true;
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 5629,
+            prev_card: prev_card,
+        };
+        break;
+    }
+}
+
+if ([38, 39, 40, 41].includes(prev_card)) {
+    if ([38, 39, 40, 41].includes(current_card)) {
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5658,
+                prev_card: prev_card,
+            };
+        }
+        play_allowed = true;
+        card_ask_perm = true;
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'none',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 5676,
+            prev_card: prev_card,
+        };
+    }
+}
+
+if ([42, 43, 44, 45].includes(prev_card)) {
+    if ([42, 43, 44, 45].includes(current_card)) {
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5699,
+                prev_card: prev_card,
+            };
+        }
+        play_allowed = true;
+        card_ask_perm = true;
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'none',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 5719,
+            prev_card: prev_card,
+        };
+    }
+}
+
+if ([46, 47, 48, 49].includes(prev_card)) {
+    if ([46, 47, 48, 49].includes(current_card)) {
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5747,
+                prev_card: prev_card,
+            };
+        }
+        play_allowed = true;
+        card_ask_perm = true;
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 5764,
+            prev_card: prev_card,
+        };
+        break;
+    }
+}
+
+if ([50, 51, 52, 53].includes(prev_card)) {
+    if ([50, 51, 52, 53].includes(current_card)) {
+        if (k === pll - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+                card_requests: card_request,
+                card_requested: card_requested,
+                last_play_cards: player_cards,
+                kadi: kadi,
+                cardless: cardless,
+                line: 5789,
+                prev_card: prev_card,
+            };
+        }
+        play_allowed = true;
+        card_ask_perm = true;
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+            card_requests: card_request,
+            card_requested: card_requested,
+            last_play_cards: player_cards,
+            kadi: kadi,
+            cardless: cardless,
+            line: 5807,
+            prev_card: prev_card,
+        };
+        break;
+    }
+}
+
+
+
+
+
+
+}//end of second card
+
+
+
+
+
+}//end of else for non pick
+
+
+
+
+
+
+
+
+
+
+
+// Simulating database retrieval wit
+//console.log(cardless === true && (action.play_allowed == true || action.play_allowed == 'true')&& kadi==true  && player_play.length == 1 && player_cards.length ==0);
+if (cardless === true && (action.play_allowed == true || action.play_allowed == 'true') && kadi==true && player_play.length === 1 && player_cards.length ===0) {
+    
+    const o_plays1 = last_play;
+    
+    o_plays1.push({
+        player: user_id,
+        play: JSON.stringify(player_play),
+        player_fined: action.fine,
+        play_allowed: action.play_allowed,
+        to_fine: action.to_fine,
+        next_player: action.next_player,
+        card_requests: action.card_requests,
+        card_requested: action.card_requested,
+        game_end: true,
+        kadi: action.kadi,
+        cardless: action.cardless
+    });
+
+    action.game_end = 'true';
+    action.game_winner = user_id != 19 ||user_id != '19'? getFullnameByID('registrationData2') : getFullnameByID('registrationData1'); // Implement this function to get the full name
+
+   
+
+        
+
+let action_d = { ...action, ready_cards: ready_cards };
+
+   
+        return (JSON.stringify(action_d)); // Adjust output as necessary
+
+
+}
+else{
+
+
+
+
+
+    let fined_card = null;
+    if (action.fine == 1) {
+        fined_card = ready_cards[ready_cards.length - 1];
+        ready_cards.pop();
+    }
+
+ 
+    action.game_end = 'false';
+
+    let  action_d = { ...action, ready_cards: ready_cards};
+    
+    
+ 
+
+return (JSON.stringify(action_d));
+}
+      
+    }
+
+   // }
+
+   /* let action_d = {};
+    if (action.next_player == '19') {
+        alert('hello');
+        action_d = { ...action, ready_cards: ready_cards, end_status: end_status };
+      console.log( aiTurn(action_d, duel_id, players)); // Implement this function for AI turn logic
+    } else {
+     }
+
+    if (user !== 19) {
+        
+        return (JSON.stringify(action_d)); // Adjust output as necessary
+    }*/
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///next block
+function process_card_request(cards = null, players, currentPlayer, to_play) {
+    // var_dump(cards);
+    const userId = sessionStorage.getItem('userID'); // Assuming session storage is used
+    const duelId = 1270; // You can modify this to get it dynamically
+    const hearts = [0, 4, 8, 12, 16, 20, 24, 30, 34, 38, 42, 46, 50];
+    const diamonds = [1, 5, 9, 13, 17, 21, 25, 31, 35, 39, 43, 47, 51];
+    const flowers = [2, 6, 10, 14, 18, 22, 26, 32, 36, 40, 44, 48, 52];
+    const spades = [3, 7, 11, 15, 19, 23, 27, 33, 37, 41, 45, 49, 53];
+
+    const allowedQHearts = [16, 30, 34, 38, 42, 46, 50];
+    const allowedQDiamonds = [17, 31, 35, 39, 43, 47, 51];
+    const allowedQFlowers = [18, 32, 36, 40, 44, 48, 52];
+    const allowedQSpades = [19, 33, 37, 41, 45, 49, 53];
+
+    const allowed8Hearts = [12, 30, 34, 38, 42, 46, 50];
+    const allowed8Diamonds = [13, 31, 35, 39, 43, 47, 51];
+    const allowed8Flowers = [14, 32, 36, 40, 44, 48, 52];
+    const allowed8Spades = [15, 33, 37, 41, 45, 49, 53];
+
+    const allowed2Hearts = [24, 28, 29];
+    const allowed2Diamonds = [25, 28, 29];
+    const allowed2Flowers = [26, 28, 29];
+    const allowed2Spades = [27, 28, 29];
+
+    const allowed3Hearts = [20, 28, 29];
+    const allowed3Diamonds = [21, 28, 29];
+    const allowed3Flowers = [22, 28, 29];
+    const allowed3Spades = [23, 28, 29];
+    const allowedJK = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
+
+    const playerCount = players.length;
+    currentPlayer = players[playerCount - 1];
+
+    const cardCount = cards.length;
+    toPlay = players[playerCount - 1];
+
+    let cardRequest = false;
+    let cardRequested = '';
+    let playerAskCard = false;
+    let action = {};
+
+    for (let k = 0; k < cards.length; k++) {
+        let current_card = cards[k];
+        let prev_card;
+
+        if (k === 0) {
+            prev_card = cards[0];
+        } else {
+            prev_card = cards[k - 1];
+        }
+
+        // Check all breaks and action return
+        if ([4, 5, 6, 7].includes(prev_card)) {
+            if ([4, 5, 6, 7].includes(current_card)) {
+                const playAllowed = true;
+                const cardAskPerm = true;
+                const ps = playerCount - 1;
+
+                const op = players[0];
+                players.splice(0, 1); // Remove first player
+                players.reverse(); // Reverse the array
+                players.push(op); // Add the first player to the end
+
+                toPlay = players[ps];
+                if (k === cardCount - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        }
+
+        if ([8, 9, 10, 11].includes(prev_card)) {
+            if ([8, 9, 10, 11].includes(current_card)) {
+                const pl = players.length;
+                const lp = players[pl - 1];
+                currentPlayer = players[pl - 1];
+                players.pop(); // Remove last player
+                players.unshift(lp); // Add last player to the front
+
+                toPlay = players[pl - 1];
+
+                const playAllowed = true;
+                const cardAskPerm = true;
+                if (k === cardCount - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                const playAllowed = false;
+
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        }
+
+if ([12, 13, 14, 15].includes(prev_card)) {
+    if ([12, 13, 14, 15].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === cardCount - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_q_hearts.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_q_diamonds.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_q_flowers.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_q_spades.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([16, 17, 18, 19].includes(prev_card)) {
+    if ([16, 17, 18, 19].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === cardCount - 1) {
+            action = {
+                fine: 'none',
+                play_allowed: 'true',
+                to_fine: 'none',
+                next_player: to_play,
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_8_hearts.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_8_diamonds.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_8_flowers.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_8_spades.includes(current_card)) {
+                play_allowed = true;
+                question_allowed = false;
+
+                if (k === pll - 1) {
+                    action = {
+                        fine: 'none',
+                        play_allowed: 'true',
+                        to_fine: 'none',
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        }
+    }
+}
+
+
+if ([20, 21, 22, 23].includes(prev_card)) {
+    if ([20, 21, 22, 23, 28, 29].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === cardCount - 1) {
+            let fine = (current_card === 28 || current_card === 29) ? 5 : 2;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_2_hearts.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_2_diamonds.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_2_flowers.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_2_spades.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 3;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([24, 25, 26, 27].includes(prev_card)) {
+    if ([24, 25, 26, 27, 28, 29].includes(current_card)) {
+        play_allowed = true;
+        card_ask_perm = true;
+
+        if (k === cardCount - 1) {
+            let fine = 3;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+            };
+        }
+    } else {
+        if (hearts.includes(prev_card)) {
+            if (allowed_3_hearts.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (diamonds.includes(prev_card)) {
+            if (allowed_3_diamonds.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (flowers.includes(prev_card)) {
+            if (allowed_3_flowers.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        } else if (spades.includes(prev_card)) {
+            if (allowed_3_spades.includes(current_card)) {
+                play_allowed = true;
+                if (k === pll - 1) {
+                    let fine = 2;
+                    action = {
+                        fine: fine,
+                        play_allowed: 'true',
+                        to_fine: to_play,
+                        next_player: to_play,
+                    };
+                }
+            } else {
+                action = {
+                    fine: '1',
+                    play_allowed: 'false',
+                    to_fine: 'self',
+                    next_player: to_play,
+                };
+                break;
+            }
+        }
+    }
+}
+
+if ([28, 29].includes(prev_card)) {
+    if ([20, 21, 22, 23].includes(current_card)) {
+        if (k === cardCount - 1) {
+            let fine = 2;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+            };
+        }
+        play_allowed = true;
+    } else if ([24, 25, 26, 27].includes(current_card)) {
+        if (k === pll - 1) {
+            let fine = 3;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+            };
+        }
+        play_allowed = true;
+    } else if ([28, 29].includes(current_card)) {
+        if (k === pll - 1) {
+            let fine = 5;
+            action = {
+                fine: fine,
+                play_allowed: 'true',
+                to_fine: to_play,
+                next_player: to_play,
+            };
+        }
+        play_allowed = true;
+    } else {
+        action = {
+            fine: '1',
+            play_allowed: 'false',
+            to_fine: 'self',
+            next_player: to_play,
+        };
+        break;
+    }
+}
+
+
+
+    if ([30, 31, 32, 33].includes(prev_card)) {
+        if ([30, 31, 32, 33].includes(current_card)) {
+            playAllowed = true;
+            cardAskPerm = true;
+
+            if (k === cardCount - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: true,
+                    to_fine: 'none',
+                    next_player: to_play
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: false,
+                to_fine: 'none',
+                next_player: to_play
+            };
+            return action;
+        }
+    }
+
+    if ([34, 35, 36, 37].includes(prev_card)) {
+        if ([34, 35, 36, 37].includes(current_card)) {
+            playAllowed = true;
+            cardAskPerm = true;
+
+            if (k === cardCount - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: true,
+                    to_fine: 'none',
+                    next_player: to_play
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: false,
+                to_fine: 'self',
+                next_player: to_play
+            };
+            return action;
+        }
+    }
+
+    if ([38, 39, 40, 41].includes(prev_card)) {
+        if ([38, 39, 40, 41].includes(current_card)) {
+            playAllowed = true;
+            cardAskPerm = true;
+
+            if (k === cardCount - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: true,
+                    to_fine: 'none',
+                    next_player: to_play
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: false,
+                to_fine: 'none',
+                next_player: to_play
+            };
+            return action;
+        }
+    }
+
+    if ([42, 43, 44, 45].includes(prev_card)) {
+        if ([42, 43, 44, 45].includes(current_card)) {
+            playAllowed = true;
+            cardAskPerm = true;
+
+            if (k === cardCount - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: true,
+                    to_fine: 'none',
+                    next_player: to_play
+                };
+                return action;
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: false,
+                to_fine: 'none',
+                next_player: to_play
+            };
+            return action;
+        }
+    }
+
+    if ([46, 47, 48, 49].includes(prev_card)) {
+        if ([46, 47, 48, 49].includes(current_card)) {
+            playAllowed = true;
+            cardAskPerm = true;
+
+            if (k === cardCount - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: true,
+                    to_fine: 'none',
+                    next_player: to_play
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: false,
+                to_fine: 'self',
+                next_player: to_play
+            };
+            return action;
+        }
+    }
+
+    if ([50, 51, 52, 53].includes(prev_card)) {
+        if ([50, 51, 52, 53].includes(current_card)) {
+            playAllowed = true;
+            cardAskPerm = true;
+
+            if (k === cardCount - 1) {
+                action = {
+                    fine: 'none',
+                    play_allowed: true,
+                    to_fine: 'none',
+                    next_player: to_play
+                };
+            }
+        } else {
+            action = {
+                fine: '1',
+                play_allowed: false,
+                to_fine: 'self',
+                next_player: to_play
+            };
+            return action;
+        }
+    }
+
+
+
+
+
+    }
+
+    // Return action
+    return action;
+}
+</script>

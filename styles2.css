@@ -1,0 +1,592 @@
+/* === Theme Variables === */
+:root {
+  --bg-color: #1e1e2f;
+  --text-color: #f1f1f1;
+  --card-bg: #2b2b40;
+  --modal-bg: #2f2f48;
+  --modal-text: #ffffff;
+  --btn-bg: #4caf50;
+  --btn-hover: #45a049;
+  --selection-bg: #3b4d61;
+  --selection-hover-bg: #5bc0de;
+  --selection-hover-text: #ffffff;
+  --notify-bg: #2e2e3e;
+  --notify-inner-bg: #3a3a4a;
+  --notify-updates-bg: #4c4c5a;
+  --portrait-border: #cccccc;
+
+  --border-color: rgba(255, 255, 255, 0.15);
+  --heading-color: #00bcd4;
+  --paragraph-color: #e0e0e0;
+  --span-highlight: #ffeb3b;
+}
+
+body[data-theme="light"] {
+  --bg-color: #f7f9fc;
+  --text-color: #212121;
+  --card-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --modal-text: #2c3e50;
+  --btn-bg: #0066cc;
+  --btn-hover: #004c99;
+  --selection-bg: #d6eaff;
+  --selection-hover-bg: #0066cc;
+  --selection-hover-text: #ffffff;
+  --notify-bg: #f4f4f4;
+  --notify-inner-bg: #ffffff;
+  --notify-updates-bg: #e8e8e8;
+  --portrait-border: #2c3e50;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --heading-color: #004c99;
+  --span-highlight: #0066cc;
+}
+
+
+/* === Typography === */
+body {
+  font-family: 'Raleway', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading-color);
+  font-weight: 600;
+  margin-bottom: 0.5em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.2em;
+}
+
+p {
+  color: var(--paragraph-color);
+  line-height: 1.6;
+  margin-bottom: 1em;
+}
+
+span {
+  color: var(--span-highlight);
+  font-weight: 500;
+}
+
+/* === Overlay & Tutorial === */
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  z-index: 100;
+  display: none;
+}
+
+.tutorial-text {
+  position: absolute;
+  z-index: 1010;
+  color: #3ea2bf;
+  font-size: 18px;
+  display: none;
+  top: 20%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* === Circles === */
+.circle2,
+.circle {
+  background-color: var(--card-bg);
+  box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3);
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  display: flex;
+  height: 75px;
+  width: 75px;
+}
+
+.circle {
+  border-radius: 100%;
+}
+
+/* === Game Container === */
+#game-container {
+  margin: 50px auto;
+  max-width: 600px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* === Card Stack Area === */
+#stack, #playing-area {
+  width: 200px;
+  height: 300px;
+  border: 2px dashed #ccc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+/* === Player Cards === */
+.card {
+  width: 80px;
+  height: 120px;
+  border-radius: 10px;
+  margin-right: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  z-index: 1;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  background-color: var(--card-bg);
+}
+
+.card:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* === Stacked Cards === */
+.card-back {
+  width: 80px;
+  height: 120px;
+  background: url('/path-to-card-back-image.png') no-repeat center center;
+  background-size: cover;
+  border-radius: 10px;
+  position: absolute;
+  top: 0;
+  transition: top 0.2s ease-in-out;
+}
+
+.card-back:nth-child(1) { top: 0px; }
+.card-back:nth-child(2) { top: 10px; }
+.card-back:nth-child(3) { top: 20px; }
+.card-back:nth-child(4) { top: 30px; }
+.card-back:nth-child(5) { top: 40px; }
+
+/* === Player Actions === */
+button.btn-primary {
+  background-color: var(--btn-bg);
+  color: black;
+  font-weight: bold;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+  padding: 10px 20px;
+  border: none;
+}
+
+button.btn-primary:hover {
+  background-color: var(--btn-hover);
+}
+
+/* === Custom Alert === */
+#custom-alert {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #f8d7da;
+  padding: 20px;
+  border: 1px solid #f5c2c7;
+  color: #842029;
+  font-family: Arial, sans-serif;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* === Modal === */
+.modal-content {
+  background: var(--modal-bg);
+  color: var(--modal-text);
+  border-radius: 12px;
+  border: 2px solid #007bff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  background: #2c3e50;
+  color: #ffffff;
+  border-bottom: 2px solid #007bff;
+}
+
+/* === Selection Cards === */
+.selection-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.selection-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48%;
+  padding: 15px;
+  border: 2px solid #007bff;
+  border-radius: 10px;
+  background: var(--selection-bg);
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  color: var(--modal-text);
+}
+
+.selection-card:hover,
+.selection-card.selected,
+#back_to_menu:hover {
+  border-color: #ff9800;
+  background: var(--selection-hover-bg);
+  color: var(--selection-hover-text);
+}
+
+#back_to_menu {
+  background: var(--selection-bg);
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  #game-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    width: 60px;
+    height: 90px;
+  }
+
+  .selection-container {
+    flex-direction: column;
+  }
+
+  .selection-card {
+    width: 100%;
+  }
+}
+
+/* === Notify Bar === */
+.notifywin-wrapper {
+  position: sticky;
+  top: 0;
+  background-color: var(--notify-bg);
+  padding: 2px;
+  font-size: 18px;
+  z-index: 10;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.notifywin-inner {
+  background: var(--notify-inner-bg);
+  color: var(--text-color);
+  position: relative;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.notifywin-updates {
+  background: var(--notify-updates-bg);
+  padding: 4px;
+  border-radius: 5px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.notifywin-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.notifywin-icons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.notifywin-text {
+  margin: 0;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.notifywin-right {
+  width: 140px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === Player Portrait === */
+.player-portrait {
+  width: 100%;
+  background: var(--notify-updates-bg);
+  overflow: hidden;
+  border: 3px solid var(--portrait-border);
+}
+
+.player-portrait-image {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-name {
+  color: #FFD700;
+  margin: 2px 0;
+  font-size: 16px;
+}
+
+/* === Card Stack Areas === */
+.circle-card,
+.card-stack,
+.prev-play {
+  color: var(--text-color);
+}
+
+.card-stack {
+  margin: 0 auto;
+  bottom: 0;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+  display: flex;
+  align-items: flex-end;
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100vw;
+  white-space: nowrap;
+}
+
+.card-holder {
+  height: 300px;
+  width: 200px;
+}
+
+.card-placeholder {
+  width: 50px;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+/* === Utilities === */
+.footer {
+  display: none;
+}
+
+.btn-secondary i {
+  margin-right: 5px;
+}
+
+.full-height-container {
+  min-height: 1005px;
+  height: 100vh;
+}
+
+.custom-alert {
+  /* Custom alert placeholder */
+}
+
+.tutorial-buttons {
+  position: fixed;
+  z-index: 1000;
+  top: 10%;
+  right: 10%;
+}
+
+.tutorial-buttons .btn {
+  display: none;
+}
+
+.z-999 {
+  z-index: 999;
+}
+
+.auth-card {
+  perspective: 1000px;
+  width: 100%;
+  max-width: 350px;
+  margin: auto;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s ease;
+}
+
+.auth-face {
+  position: absolute;
+  width: 100%;
+  backface-visibility: hidden;
+  background: var(--modal-bg);
+  color: var(--modal-text);
+  border: 1px solid var(--border-color);
+  padding: 2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+.auth-front {
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+
+.auth-back {
+  transform: rotateY(180deg);
+}
+
+.auth-guest {
+  transform: rotateY(-180deg);
+}
+.auth-forgot {
+  /* Slight offset effect if needed */
+  display: none;
+  transform: rotateY(0deg) translateZ(1px);
+  z-index: 3;
+}
+
+.auth-btn {
+  background: var(--btn-bg);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  width: 100%;
+  border-radius: 5px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.auth-btn:hover {
+  background: var(--btn-hover);
+}
+
+.card-inner.show-back {
+  transform: rotateY(180deg);
+}
+
+.card-inner.show-guest {
+  transform: rotateY(-180deg);
+}
+
+
+input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background: #fff;
+  color: #000;
+}
+
+#toast-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999;
+}
+
+.toast {
+  background-color: #333;
+  color: #fff;
+  padding: 12px 20px;
+  margin-top: 10px;
+  border-radius: 5px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  font-size: 14px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#hearts { background: url('cards/card_1.png');background-size :contain;background-repeat: no-repeat;}
+#diamonds { background: url('cards/card_2.png');background-size :contain;background-repeat: no-repeat;}
+#flowers { background: url('cards/card_3.png');background-size :contain;background-repeat: no-repeat;}
+#spades { background: url('cards/card_4.png');background-size :contain;background-repeat: no-repeat;}
+
+
+#card_0 { background: url('cards/card_1.png');background-size :contain;background-repeat: no-repeat;}
+#card_1 { background: url('cards/card_2.png');background-size :contain;background-repeat: no-repeat;}
+#card_2 { background: url('cards/card_3.png');background-size :contain;background-repeat: no-repeat;}
+#card_3 { background: url('cards/card_4.png');background-size :contain;background-repeat: no-repeat;}
+#card_4 { background: url('cards/card_5.png');background-size :contain;background-repeat: no-repeat;}
+#card_5 { background: url('cards/card_6.png');background-size :contain;background-repeat: no-repeat;}
+#card_6 { background: url('cards/card_7.png');background-size :contain;background-repeat: no-repeat;}
+#card_7 { background: url('cards/card_8.png');background-size :contain;background-repeat: no-repeat;}
+#card_8 { background: url('cards/card_9.png');background-size :contain;background-repeat: no-repeat;}
+#card_9 { background: url('cards/card_10.png');background-size :contain;background-repeat: no-repeat;}
+#card_10 { background: url('cards/card_11.png');background-size :contain;background-repeat: no-repeat;}
+#card_11 { background: url('cards/card_12.png');background-size :contain;background-repeat: no-repeat;}
+#card_12 { background: url('cards/card_13.png');background-size :contain;background-repeat: no-repeat;}
+#card_13 { background: url('cards/card_14.png');background-size :contain;background-repeat: no-repeat;}
+#card_14 { background: url('cards/card_15.png');background-size :contain;background-repeat: no-repeat;}
+#card_15 { background: url('cards/card_16.png');background-size :contain;background-repeat: no-repeat;}
+#card_16 { background: url('cards/card_17.png');background-size :contain;background-repeat: no-repeat;}
+#card_17 { background: url('cards/card_18.png');background-size :contain;background-repeat: no-repeat;}
+#card_18 { background: url('cards/card_19.png');background-size :contain;background-repeat: no-repeat;}
+#card_19 { background: url('cards/card_20.png');background-size :contain;background-repeat: no-repeat;}
+#card_20 { background: url('cards/card_21.png');background-size :contain;background-repeat: no-repeat;}
+#card_21 { background: url('cards/card_22.png');background-size :contain;background-repeat: no-repeat;}
+#card_22 { background: url('cards/card_23.png');background-size :contain;background-repeat: no-repeat;}
+#card_23 { background: url('cards/card_24.png');background-size :contain;background-repeat: no-repeat;}
+#card_24 { background: url('cards/card_25.png');background-size :contain;background-repeat: no-repeat;}
+#card_25 { background: url('cards/card_26.png');background-size :contain;background-repeat: no-repeat;}
+#card_26 { background: url('cards/card_27.png');background-size :contain;background-repeat: no-repeat;}
+#card_27 { background: url('cards/card_28.png');background-size :contain;background-repeat: no-repeat;}
+#card_28 { background: url('cards/card_29.png');background-size :contain;background-repeat: no-repeat;}
+#card_29 { background: url('cards/card_30.png');background-size :contain;background-repeat: no-repeat;}
+#card_30 { background: url('cards/card_31.png');background-size :contain;background-repeat: no-repeat;}
+#card_31 { background: url('cards/card_32.png');background-size :contain;background-repeat: no-repeat;}
+#card_32 { background: url('cards/card_33.png');background-size :contain;background-repeat: no-repeat;}
+#card_33 { background: url('cards/card_34.png');background-size :contain;background-repeat: no-repeat;}
+#card_34 { background: url('cards/card_35.png');background-size :contain;background-repeat: no-repeat;}
+#card_35 { background: url('cards/card_36.png');background-size :contain;background-repeat: no-repeat;}
+#card_36 { background: url('cards/card_37.png');background-size :contain;background-repeat: no-repeat;}
+#card_37{ background: url('cards/card_38.png');background-size :contain;background-repeat: no-repeat;}
+#card_38 { background: url('cards/card_39.png');background-size :contain;background-repeat: no-repeat;}
+#card_39 { background: url('cards/card_40.png');background-size :contain;background-repeat: no-repeat;}
+#card_40 { background: url('cards/card_41.png');background-size :contain;background-repeat: no-repeat;}
+#card_41 { background: url('cards/card_42.png');background-size :contain;background-repeat: no-repeat;}
+#card_42 { background: url('cards/card_43.png');background-size :contain;background-repeat: no-repeat;}
+#card_43 { background: url('cards/card_44.png');background-size :contain;background-repeat: no-repeat;}
+#card_44 { background: url('cards/card_45.png');background-size :contain;background-repeat: no-repeat;}
+#card_45 { background: url('cards/card_46.png');background-size :contain;background-repeat: no-repeat;}
+#card_46 { background: url('cards/card_47.png');background-size :contain;background-repeat: no-repeat;}
+#card_47 { background: url('cards/card_48.png');background-size :contain;background-repeat: no-repeat;}
+#card_48 { background: url('cards/card_49.png');background-size :contain;background-repeat: no-repeat;}
+#card_49 { background: url('cards/card_50.png');background-size :contain;background-repeat: no-repeat;}
+#card_50 { background: url('cards/card_51.png');background-size :contain;background-repeat: no-repeat;}
+#card_51 { background: url('cards/card_52.png');background-size :contain;background-repeat: no-repeat;}
+#card_52 { background: url('cards/card_53.png');background-size :contain;background-repeat: no-repeat;}
+#card_53 { background: url('cards/card_54.png');background-size :contain;background-repeat: no-repeat;}
+#card_placeholder { background: url('cards/placeholder-cards.png');background-size :contain;background-repeat: no-repeat;}
+#card_pick { background: url('cards/card-pick.png');background-size :contain;background-repeat: no-repeat;}
+
+
+
