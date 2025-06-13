@@ -6,13 +6,14 @@ console.log(playerID);
 
     const storedGame = JSON.parse(localStorage.getItem("activeGame"));
 
-    if (storedGame && storedGame.status === "on") {
+    if (storedGame && storedGame.status === "on" && storedGame.host == playerID) {
         console.log("Resuming stored game:", storedGame.gameID);
         if(storedGame.play_type == 'single_player'){
         duel_id = storedGame.gameID;
         play_type = "single_player";
         user = playerID;
-$('#continueGame').modal('show');
+$('#continueGame').modal({backdrop: 'static',
+  keyboard: false  });
         
 
         }
@@ -22,7 +23,8 @@ $('#continueGame').modal('show');
         opponent = storedGame.opponent;
         user = playerID;
         if(storedGame.friendSetup == false){
-            $('#continueGame').modal('show');
+            $('#continueGame').modal({backdrop: 'static',
+  keyboard: false  });
         }
         else{
             storedGame.friendSetup = false;
@@ -55,14 +57,16 @@ console.log('whats happening')
                 return true;
             }
             else{
-                $('#game_selection').modal('show');
+                $('#game_selection').modal({backdrop: 'static',
+  keyboard: false  });
             }
 
             return false;
         });
     }
     else{
-$('#game_selection').modal('show');
+$('#game_selection').modal({backdrop: 'static',
+  keyboard: false  });
     }
 }
 
@@ -461,16 +465,7 @@ localStorage.setItem('duel', JSON.stringify(data));
 
 }
 
-function generateUniqueId() {
-  // Get the current timestamp
-  const timestamp = Date.now().toString(36); // Convert timestamp to base-36
 
-  // Generate a random number and convert it to base-36
-  const randomNum = Math.random().toString(36).substring(2, 10);
-
-  // Combine timestamp and random number to create a unique ID
-  return `${timestamp}-${randomNum}`;
-}
 
 // Usage
 

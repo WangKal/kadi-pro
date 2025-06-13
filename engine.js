@@ -5349,6 +5349,7 @@ function shuffle(array) {
 
 // Function to start the game and deal cards to AI
 function aiStart(readyCards) {
+    console.log(readyCards);
     let deck = readyCards.slice(); // Copy of readyCards
     shuffle(deck);
 
@@ -5364,7 +5365,7 @@ const reg1 = getLocalStorage('registrationData1', null)|| [];
 
     const data1 = {
         ...kadiPlays,
-        ready_cards: JSON.stringify(readyCards),
+        ready_cards: readyCards,
     };
 
     const data2 = {

@@ -1,6 +1,17 @@
+function restartGame(){
+  location.reload();
+}
 
+function generateUniqueId() {
+  // Get the current timestamp
+  const timestamp = Date.now().toString(36); // Convert timestamp to base-36
 
+  // Generate a random number and convert it to base-36
+  const randomNum = Math.random().toString(36).substring(2, 10);
 
+  // Combine timestamp and random number to create a unique ID
+  return `${timestamp}-${randomNum}`;
+}
 
 
 

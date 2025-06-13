@@ -40,6 +40,9 @@
 <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+
 <!-- Animate.css -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 
@@ -72,10 +75,13 @@
     <div class="notifywin-inner">
       <div class="notifywin-left">
         <div class="notifywin-icons">
-          <button class="btn btn-primary" onclick="shareGameResult()">🔗</button>
-          <button class="btn btn-info" onclick="viewLeaderboard()">📊</button>
-          <button class="btn btn-danger" onclick="restartGame()">🔄</button>
-          <button onclick="document.body.classList.toggle('dark-mode')">Toggle Dark Mode</button>
+
+        <button class="btn btn-info" onclick="restartGame()"><i class="bi bi-arrow-clockwise"></i></button>
+         <button class="btn btn-info" onclick="viewLeaderboard()"><i class="bi bi-trophy"></i></button>
+          <button class="btn btn-info" onclick="profileView()"><i class="bi bi-person-circle"></i></button>
+          <button class="btn btn-info" onclick="document.body.classList.toggle('dark-mode')"><i class="bi bi-moon" id="themeToggle"></i></button>
+           <button class="btn btn-info" onclick="logout()" ><i class="bi bi-box-arrow-right"></i> 
+        </button>
 
         </div>
         <div class="notifywin-updates">
@@ -85,7 +91,7 @@
       <div class="notifywin-right">
         <div class="player-portrait">
           <div class="player-portrait-image">
-            <img src="/img/friend.jpg" alt="Player" style="width: 100%; height: auto; object-fit: cover;">
+            <img src="./img/friend.jpg" id="player-pic" alt="Player" style="width: 100%; height: auto; object-fit: cover;">
           </div>
           <h4 class="player-name">Player Name</h4>
         </div>
@@ -97,7 +103,7 @@
     <div class="col-md-6">
       <div id="playing-area" style="margin:0 auto;">
         <div id="circle1">
-          <div class="playing-card circle-card"></div>
+          <div class="playing-card " ></div>
         </div>
       </div>
     </div>
@@ -106,22 +112,22 @@
       <div>
         <div class="col-xs-3 z-999">
           <div id="circle2" class="z-999">
-            <button class="btn btn-primary" id="pick_c">PICK</button>
+            <button class="btn btn-info" id="pick_c">PICK</button>
           </div>
         </div>
         <div class="col-xs-3">
           <div id="circle3">
-            <button class="btn btn-primary" id="undo">UNDO</button>
+            <button class="btn btn-info" id="undo">UNDO</button>
           </div>
         </div>
         <div class="col-xs-3">
           <div id="circle4">
-            <button class="btn btn-primary" id="kadi">KADI</button>
+            <button class="btn btn-info" id="kadi">KADI</button>
           </div>
         </div>
         <div class="col-xs-3">
           <div id="circle5">
-            <button class="btn btn-primary" id="play_end">PLAY</button>
+            <button class="btn btn-info" id="play_end">PLAY</button>
           </div>
         </div>
       </div>
@@ -220,7 +226,7 @@
             <!-- Header -->
             <div class="modal-header text-center">
                 <h3 id="gameModalLabel" class="w-100"> Select Play Mode</h3>
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                
             </div>
 
             <!-- Main Content -->
@@ -228,7 +234,7 @@
                 <!-- First Screen: Singleplayer or Multiplayer (Side-by-Side on Large Screens) -->
                 <div id="main-menu" class="selection-container">
                     <div class="selection-card" id="multi_player">
-                        <img src="/img/multi.jpg" alt="Multiplayer">
+                        <img src="./img/multi.jpg" alt="Multiplayer">
                         <div class="card-info">
                             <h5>🌍 Multiplayer</h5>
                             <p>Play with a friend or a random opponent.</p>
@@ -236,7 +242,7 @@
                     </div>
 
                     <div class="selection-card" id="single_player">
-                        <img src="/img/single.jpg" alt="Singleplayer">
+                        <img src="./img/single.jpg" alt="Singleplayer">
                         <div class="card-info">
                             <h5>🎮 Singleplayer</h5>
                             <p>Play against AI and practice your skills.</p>
@@ -247,7 +253,7 @@
                 <!-- Multiplayer Options (Side-by-Side on Large Screens, Hidden Initially) -->
                 <div id="multiplayer-options" style="display:none" class="selection-container d-none">
                     <div class="selection-card" id="play_random">
-                        <img src="/img/random.png" alt="Random Match">
+                        <img src="./img/random.png" alt="Random Match">
                         <div class="card-info">
                             <h5>🎲 Play Random</h5>
                             <p>Find a random opponent & challenge them!</p>
@@ -255,7 +261,7 @@
                     </div>
 
                     <div class="selection-card" id="play_friend">
-                        <img src="/img/friend.jpg" alt="Play with Friend">
+                        <img src="./img/friend.jpg" alt="Play with Friend">
                         <div class="card-info">
                             <h5>👫 Play with Friend</h5>
                             <p>Invite and challenge a specific friend.</p>
@@ -390,10 +396,12 @@
   <div class="card-inner" id="authCardInner">
     <div class="auth-face auth-front" id="loginFace">
       <h3>Login</h3>
+      <form>
       <input type="email" placeholder="Email" id="loginEmail" />
       <input type="password" placeholder="Password" id="loginPassword" />
-      <button class="auth-btn" onclick="login()">Login</button>
+      <button class="auth-btn" id="loginBtn" onclick="login()">Login</button>
       <p><a href="#" onclick="flipTo('register')">Register</a> | <a href="#" onclick="flipTo('guest')">Guest</a> | <a href="#" onclick="flipTo('forgot')">Forgot Password</a></p>
+  </form>
     </div>
 
     <div class="auth-face auth-back" id="registerFace">
@@ -402,20 +410,20 @@
       <input type="text" placeholder="Phone" id="regPhone"/>
       <input type="email" placeholder="Email" id="regEmail"/>
       <input type="password" placeholder="Password" id="regPassword"/>
-      <button class="auth-btn" onclick="register()">Register</button>
+      <button class="auth-btn" id="registerBtn" onclick="register()">Register</button>
       <p><a href="#" onclick="flipTo('login')">Login</a></p>
     </div>
 
     <div class="auth-face auth-guest" id="guestFace">
       <h3>Guest Access</h3>
-      <input type="text" placeholder="Nickname" />
-      <button class="auth-btn">Continue</button>
-      <p><a href="#" onclick="flipTo('login')">Login</a></p>
+      <input type="text" placeholder="Nickname" id="Nickname" />
+      <button class="auth-btn" onclick="guestLogin()">Continue</button>
+      <p><a href="#" id="guestBtn" onclick="flipTo('login')">Login</a></p>
     </div>
 <div class="auth-face auth-forgot" id="forgotFace">
   <h3>Reset Password</h3>
-  <input type="email" placeholder="Your Email" />
-  <button class="auth-btn">Send Reset Link</button>
+  <input type="email" placeholder="Your Email" id="forgotEmail" />
+  <button class="auth-btn" id="resetBtn" onclick="resetPassword()">Send Reset Link</button>
   <p><a href="#" onclick="flipTo('login')">Back to Login</a></p>
 </div>
 
@@ -425,6 +433,25 @@
 
   </div>
 </div>
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header">
+        <h3 class="modal-title" id="logoutModalLabel">Confirm Logout</h3>
+        
+      </div>
+      <div class="modal-body">
+        Are you sure you want to logout? All progress will be lost if you are still playing.
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancelLogoutBtn" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmLogoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <div id="toast-container"></div>
 
@@ -500,9 +527,21 @@ var tutorial_count = 0;
 
        $(document).ready(function() {
 
-
+    const storedPlayerID = localStorage.getItem("playerID");
+    
+    if (storedPlayerID) {
+      playerID = storedPlayerID;
+      playerName = localStorage.getItem("playerName") || "Player";
+      playerPhoto = localStorage.getItem("playerPhoto") || "";
+      checkForInvitedGame(playerID);
+    } else {
+      $('#authModal').modal({
+        backdrop: 'static',
+        keyboard: false
+      });
+    }
+  
      
-$('#authModal').modal('show')
 
    /* $('#game_selection').modal('show');
     $('#multi_player').css({'display':'none'});*/
@@ -527,7 +566,8 @@ document.getElementById("cancelGameBtn").addEventListener("click", function() {
    
     localStorage.clear();
     $('#continueGame').modal('hide');
-    $('#game_selection').modal('show');
+    $('#game_selection').modal({backdrop: 'static',
+  keyboard: false  });
 });
 document.getElementById("continueGameBtn").addEventListener("click", function() {
    
@@ -761,6 +801,7 @@ var start_cards =shuffleArray([30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,4
 
 var stl =start_cards.length;
 begin_card_index =start_cards[stl -1];
+console.log(begin_card_index);
 var begin_card ='card_'+ begin_card_index;
 var last_play =begin_card_index;
 
@@ -1017,7 +1058,8 @@ async function check_play(duel_id) {
         }
 
         prev_play = [begin_card_index];
-
+        console.log(prev_play)
+        console.log(play_state)
         if (play_state === "playing") {
           start_play = true;
           clearInterval(x); // Clear here to avoid duplicate calls
@@ -1557,9 +1599,9 @@ $('#h'+(no_cards-1)).after('<div class="holdin-p" id="h'+new_card+'" style="heig
 if(to_pick == user){
     my_fine  = my_fine-1;
 }
-
-shuffled_rc.shift();
 console.log(shuffled_rc);
+shuffled_rc.shift();
+
 ready_cards = shuffled_rc;
 card_picked = true;
 
