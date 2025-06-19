@@ -35,7 +35,7 @@ async function getCardlessStatus(duel) {
 async function updateKadiPlays(o_plays) {
     try {
         await db.ref(`games/${duel_id}/kadi_plays`).set(o_plays);
-        console.log("Updated kadi_plays in Firebase:", o_plays);
+        /*console.log("Updated kadi_plays in Firebase:", o_plays);*/
     } catch (error) {
         console.error("Error updating kadi_plays:", error);
     }
@@ -69,7 +69,7 @@ async function updatePlayerCards(  player_cards) {
 
         // Update Firebase with new cards
         await db.ref(`games/${duel_id}/registrationData/${playerKey}/my_cards`).set(player_cards);
-        console.log(`Updated cards for ${user_id} in ${playerKey}:`, player_cards);
+        /*console.log(`Updated cards for ${user_id} in ${playerKey}:`, player_cards);*/
     } catch (error) {
         console.error("Error updating player cards:", error);
     }
@@ -78,7 +78,7 @@ async function getAllPlayerCards( play_type) {
     let all_cards = [];
 
     if (play_type === "single_player") {
-        console.log("Fetching from Local Storage...");
+        /*console.log("Fetching from Local Storage...");*/
 
         let playerCards1 = JSON.parse(localStorage.getItem('registrationData1'))?.my_cards || [];
         let playerCards2 = JSON.parse(localStorage.getItem('registrationData2'))?.my_cards || [];
@@ -91,7 +91,7 @@ async function getAllPlayerCards( play_type) {
         );
 
     } else {
-        console.log("Fetching from Firebase...");
+        /*console.log("Fetching from Firebase...");*/
 
         try {
             const regRef = db.ref(`games/${duel_id}/registrationData`);
@@ -123,7 +123,7 @@ async function getAllPlayerCards( play_type) {
         }
     }
 
-    console.log("All collected cards:", all_cards);
+    /*console.log("All collected cards:", all_cards);*/
     return all_cards;
 }
 
@@ -144,12 +144,12 @@ async function kadiPlay(
   lastPlay = null,
   duelId = null,
 ) {
-console.log(cardless);
+/*console.log(cardless);*/
 let cr = card_request;
 let crd = card_requested;
 
-console.log(card_request)
-console.log(crd)
+/*console.log(card_request)
+console.log(crd)*/
 let user_id = player; // kadi_ai
 let duel_id = localStorage.getItem('duel_id');
 let hearts = [0, 4, 8, 12, 16, 20, 24, 30, 34, 38, 42, 46, 50];
@@ -226,7 +226,7 @@ let action = [];
 
    const kpp1 = await getKadiPlays(duel_id);
 const kpp =kpp1 ;
-console.log(kpp1.last_play);
+/*console.log(kpp1.last_play);*/
 const kppo = (kpp.last_play[0]) == '[' ?JSON.parse(kpp.last_play):kpp.last_play;;
 let last_play = kppo || [];
 let lpl = last_play.length;
@@ -246,9 +246,9 @@ let plays_no = last_play.length;
  card_requested = (kppo[0]) == '['?crd:kppo[plays_no-1].card_requested;
 
 card_request = (card_request) == null ||card_request== undefined?(kppo[plays_no-1]).card_request:card_request;
-console.log(card_request)
+/*console.log(card_request)
 
-console.log(kppo[plays_no-1])
+console.log(kppo[plays_no-1])*/
 if (player_play[0] === 'picked_card') {
 
 
@@ -258,10 +258,10 @@ if (player_play[0] === 'picked_card') {
     const oPlays = oPlaysF.last_play;
   
     let cardlessStatusF = await getCardlessStatus(duel_id) ;
-    console.log(cardlessStatusF)
+    /*console.log(cardlessStatusF)*/
     let cardlessStatus = cardlessStatusF;
     let kadiStatusF = await getKadiStatus(duel_id) ;
-    console.log(kadiStatusF);
+    /*console.log(kadiStatusF);*/
     let kadiStatus = kadiStatusF;
 
 
@@ -319,7 +319,7 @@ if (player_play[0] === 'picked_card') {
     }
 
 o_plays = oPlaysF;
-console.log(o_plays);
+/*console.log(o_plays);*/
 cardless_status =  o_plays.cardless_status || [];
 kadi_status = o_plays.kadi_status || [];//JSON.parse(o_plays.kadi_status || '[]');
 
@@ -344,7 +344,7 @@ kadi_status = o_plays.kadi_status || [];//JSON.parse(o_plays.kadi_status || '[]'
     // Update LocalStorage
     o_plays.last_play = JSON.stringify(o_plays2);
    
-    o_plays.ready_cards = JSON.stringify(ready_cards);
+    o_plays.ready_cards = ready_cards;
     o_plays.players = players;
     o_plays.playing = action.next_player;
     
@@ -357,13 +357,13 @@ let actionData = { ...action, ready_cards: ready_cards };
     if(play_type == 'single_player'){
         localStorage.setItem('kadi_plays', JSON.stringify(o_plays));
        if(user_id == 19 || user_id =='19'){
-        console.log((JSON.parse(localStorage.getItem('registrationData1'))).my_cards)
+        /*console.log((JSON.parse(localStorage.getItem('registrationData1'))).my_cards)*/
     localStorage.setItem('registrationData1', JSON.stringify({
         ...JSON.parse(localStorage.getItem('registrationData1')),
         my_cards: JSON.stringify(player_cards) // Clear cards for user
     }));}
     else{
-        console.log(player_cards);
+       /* console.log(player_cards);*/
         localStorage.setItem('registrationData2', JSON.stringify({
         ...JSON.parse(localStorage.getItem('registrationData2')),
         my_cards: JSON.stringify(player_cards) // Clear cards for user
@@ -381,7 +381,7 @@ return (JSON.stringify(actionData));
 
     
     if (action.next_player == '19' || action.next_player == '19') { // AI turn
-        alert('weuh');
+        
         actionData.play_type = 'single_player';
         
   return (JSON.stringify(actionData)); 
@@ -653,11 +653,11 @@ card_request = cr;
 card_requested = crd;
 let kadiPlays = await getKadiPlays(duel_id);
  const kpp = kadiPlays;
- console.log(cr);
- console.log(crd);
+ /*console.log(cr);
+ console.log(crd);*/
 const kppo = (kpp.last_play[0]) == '[' ?JSON.parse(kpp.last_play):kpp.last_play;//Comment we check for [ because on second play we cannot parse the json an we need to differentiate when to parse on second play the [0] is an array instead of [
-console.log(kppo);
-console.log((kpp.last_play).length);
+/*console.log(kppo);
+console.log((kpp.last_play).length);*/
 let last_play = kppo || []
 
 let lpl = last_play.length;
@@ -680,7 +680,7 @@ for (let i = lpl - 1; i >= 1; i--) {
 
 // Ensure prev_card is properly set
 prev_card = Array.isArray(prev_card) ? prev_card[0] : prev_card;
-alert(prev_card);
+
 if ([0, 1, 2, 3].includes(current_card)) {
   play_allowed = true;
   card_ask_perm = true;
@@ -3935,7 +3935,7 @@ all_cards.forEach(alc => {
 
 // Update ready_cards
 //ready_cards = all_playing_cards.slice();
-console.log(user_id)
+/*console.log(user_id)*/
 let tri = await getKadiPlays(duel_id)
 
 let o_p = tri.last_play[0] == '[' ? JSON.parse(tri.last_play):tri.last_play;
@@ -3944,12 +3944,12 @@ cardless_status = tri.cardless_status || [];
 kadi_status = tri.kadi_status || '[]';//JSON.parse(o_plays.kadi_status || '[]');
 
 let end_status = ''; // You can adjust this as needed
-console.log(cardless_status== 0);
+/*console.log(cardless_status== 0);
 console.log(kadi_status.includes(user_id));
 console.log(action.play_allowed);
 console.log(player_play.length== 1);
 console.log(player_cards.length ==0);
-console.log(cardless_status.length == 0 && (action.play_allowed == true || action.play_allowed == 'true')&& kadi_status.includes(user_id) && player_play.length == 1 && player_cards.length ==0);
+console.log(cardless_status.length == 0 && (action.play_allowed == true || action.play_allowed == 'true')&& kadi_status.includes(user_id) && player_play.length == 1 && player_cards.length ==0);*/
 if (cardless_status.length == 0 && (action.play_allowed == true || action.play_allowed == 'true') && kadi_status.includes(user_id) && player_play.length === 1 && player_cards.length ===0) {
     
     const o_plays1 = last_play;
@@ -3973,7 +3973,7 @@ if (cardless_status.length == 0 && (action.play_allowed == true || action.play_a
 
     // Update LocalStorage
     tri.last_play = JSON.stringify(o_plays1);
-    tri.ready_cards = JSON.stringify(ready_cards);
+    tri.ready_cards = ready_cards;
     tri.play_status = 'complete';
     tri.players = JSON.stringify(players);
     tri.playing = action.next_player;
@@ -3987,13 +3987,13 @@ let action_d = { ...action, ready_cards: ready_cards };
     if(play_type == 'single_player'){
         localStorage.setItem('kadi_plays', JSON.stringify(tri));
        if(user_id == 19 || user_id =='19'){
-        console.log((JSON.parse(localStorage.getItem('registrationData1'))).my_cards)
+       /* console.log((JSON.parse(localStorage.getItem('registrationData1'))).my_cards)*/
     localStorage.setItem('registrationData1', JSON.stringify({
         ...JSON.parse(localStorage.getItem('registrationData1')),
         my_cards: JSON.stringify(player_cards) // Clear cards for user
     }));}
     else{
-        console.log(player_cards);
+       /* console.log(player_cards);*/
         localStorage.setItem('registrationData2', JSON.stringify({
         ...JSON.parse(localStorage.getItem('registrationData2')),
         my_cards: JSON.stringify(player_cards) // Clear cards for user
@@ -4066,7 +4066,7 @@ const  o_plays1L =  o_plays1.length;
         kadi: action.kadi,
         cardless: action.cardless
     };
-console.log( o_plays1);
+/*console.log( o_plays1);*/
     action.fined_card = fined_card;
     const cd = cardless_status || [];
 
@@ -4077,13 +4077,13 @@ console.log( o_plays1);
         }
     } else {
         if (cd.includes(user_id)) {
-            console.log(cd);
+            /*console.log(cd);*/
             cd.splice(cd.indexOf(user_id), 1);
         }
     }
 
     const kds1 = kadi_status || [];
-console.log(kds1);
+/*console.log(kds1);*/
     if ((action.kadi == 'true' ||action.kadi == true ) && (action.cardless == 'false' || action.cardless == false)) {
         if (!kds1.includes(user_id)) {
             kds1.push(user_id);
@@ -4093,12 +4093,12 @@ console.log(kds1);
             kds1.splice(kds1.indexOf(user_id));
         }
     }
-    console.log(action.cardless);
-console.log(cd);
+    /*console.log(action.cardless);
+console.log(cd);*/
 
-console.log(kds1);
+/*console.log(kds1);*/
     // Update LocalStorage for current plays
-    tri.ready_cards = JSON.stringify(ready_cards);
+    tri.ready_cards = ready_cards;
     tri.play_status = 'playing';
     tri.cardless_status = cd;
     tri.kadi_status = kds1;
@@ -4121,13 +4121,13 @@ console.log(kds1);
     if(play_type == 'single_player'){
         localStorage.setItem('kadi_plays', JSON.stringify(tri));
        if(user_id == 19 || user_id =='19'){
-        console.log((JSON.parse(localStorage.getItem('registrationData1'))).my_cards)
+       /* console.log((JSON.parse(localStorage.getItem('registrationData1'))).my_cards)*/
     localStorage.setItem('registrationData1', JSON.stringify({
         ...JSON.parse(localStorage.getItem('registrationData1')),
         my_cards: JSON.stringify(player_cards) // Clear cards for user
     }));}
     else{
-        console.log(player_cards);
+       /* console.log(player_cards);*/
         localStorage.setItem('registrationData2', JSON.stringify({
         ...JSON.parse(localStorage.getItem('registrationData2')),
         my_cards: JSON.stringify(player_cards) // Clear cards for user
@@ -4139,9 +4139,9 @@ console.log(kds1);
         winner: user_id,
         status: 'complete'
     }));
-if (user_id != 19) {
+//if (user_id != 19) {
         return (JSON.stringify(action_d)); // Adjust output as necessary
-    }
+//    }
 }
 else{
   await updateKadiPlays(tri);
@@ -4150,7 +4150,7 @@ await updatePlayerCards( player_cards);
 return (JSON.stringify(action_d));
 }
        if(user_id == 19 || user_id =='19'){
-        console.log('hello');
+       /* console.log('hello');*/
     localStorage.setItem('registrationData1', JSON.stringify({
         ...JSON.parse(localStorage.getItem('registrationData1')),
         my_cards: JSON.stringify(player_cards) // Clear cards for user
@@ -4170,7 +4170,7 @@ return (JSON.stringify(action_d));
 
    /* let action_d = {};
     if (action.next_player == '19') {
-        alert('hello');
+      
         action_d = { ...action, ready_cards: ready_cards, end_status: end_status };
       console.log( aiTurn(action_d, duel_id, players)); // Implement this function for AI turn logic
     } else {
@@ -5013,7 +5013,15 @@ function isPlayable(card, topCard) {
 
     return cardRank === topRank || cardSuit === topSuit;
 }
+function isMultiPlayable(card, topCard) {
+    
 
+    const [cardRank, cardSuit] = getCardInfo(card);
+   
+    const [topRank, topSuit] = getCardInfo(topCard);
+
+    return cardRank === topRank || cardSuit === topSuit;
+}
 // Function to get the majority suit from a deck
 function getMajoritySuit(deck) {
     // Define suits
@@ -5065,6 +5073,40 @@ function getMajoritySuit(deck) {
     return sortedSuits[0][0]; // Return the suit name
 }
 
+function recurseIsPlayable1(cards) {
+    const results = [];
+
+    function helper(currentPath, remainingCards) {
+        if (remainingCards.length === 0) {
+            results.push([...currentPath]);
+            return;
+        }
+
+        const currentCard = currentPath[currentPath.length - 1];
+
+        let foundMatch = false;
+
+        for (let i = 0; i < remainingCards.length; i++) {
+            const nextCard = remainingCards[i];
+            if (isMultiPlayable(currentCard, nextCard)) {
+                const newRemaining = remainingCards.filter((_, idx) => idx !== i);
+                helper([...currentPath, nextCard], newRemaining);
+                foundMatch = true;
+            }
+        }
+
+        // If no further compatible match, we still push current path
+        if (!foundMatch && currentPath.length > 1) {
+            results.push([...currentPath]);
+        }
+    }
+
+    const firstCard = cards[0];
+    const remaining = cards.slice(1);
+
+    helper([firstCard], remaining);
+    return results;
+}
 
 // AI's turn
 async function aiTurn(action = null, duelId = 1384, players = null) {
@@ -5108,11 +5150,11 @@ async function aiTurn(action = null, duelId = 1384, players = null) {
     // Assuming db is an object to interact with your database
  const lastPlayQuery = await getKadiPlays(duel_id) || {};
 
- console.log(lastPlayQuery.last_play);
+ /*console.log(lastPlayQuery.last_play);*/
 const kppo = Array.isArray(lastPlayQuery.last_play)?lastPlayQuery.last_play:JSON.parse(lastPlayQuery.last_play);
 let lastPlay = kppo || []
     const lpl = lastPlay.length;
-    console.log(lpl);
+    /*console.log(lpl);*
     let topDiscardCard = lastPlay[0].play[0];
     const gameEnd = lastPlayQuery.game_end;
     for (let i = lpl - 1; i >= 1; i--) {
@@ -5145,6 +5187,7 @@ let lastPlay = kppo || []
     let kadi ;
     let cardless ;
     const readyCards = action.ready_cards; // Ready cards array
+    console.log(readyCards)
     const playerCardsQuery = JSON.parse(localStorage.getItem('registrationData1'));
     let playerCards = JSON.parse(playerCardsQuery.my_cards);
     
@@ -5193,7 +5236,7 @@ console.log(playableCards);
 
     // No playable cards, draw a card
     if (playableCards.length === 0) {
-        if (toFine === '19') {
+        if (toFine == '19') {
             const pf = action.fine;
             for (let i = 0; i < pf; i++) {
                 shuffle(readyCards);
@@ -5229,12 +5272,29 @@ console.log(playableCards);
                 rCards = remainingArray.filter(ra => [8, 9, 10, 11].includes(ra));
                  rCards.unshift(fixed);
             } else if ([12, 13, 14, 15, 16, 17, 18, 19].includes(fixed)) {
-                rCards = remainingArray.filter(ra => isPlayable(ra, fixed));
-                 rCards.unshift(fixed);
+                
+                let fc = remainingArray.filter(ra => [12, 13, 14, 15, 16, 17, 18, 19,30, 31, 32, 33,34, 35, 36, 37,38, 39, 40, 41,42, 43, 44, 45,46, 47, 48, 49,50, 51, 52, 53].includes(ra));
+                
+                
+                let rCards1 = recurseIsPlayable1(fc);
+                if(rCards1.length > 0){
+                for(r1 of rCards1){
+                 r1.unshift(fixed);
+                 r1.unshift('undefined');
+                 allPlayableCards.push(r1)
+                }
+            }
             } else if ([20, 21, 22, 23, 24, 25, 26, 27, 28, 29].includes(fixed)) {
-         
-                rCards = remainingArray.filter(ra => isPlayable(ra, fixed));
-                 rCards.unshift(fixed);
+                let fc = remainingArray.filter(ra => [20, 21, 22, 23, 24, 25, 26, 27, 28, 29].includes(ra));
+                
+                let rCards1 = recurseIsPlayable1(fc);
+                if(rCards1.length > 0){
+                for(let r1 of rCards1){
+                 r1.unshift(fixed);
+                 r1.unshift('undefined');
+                 allPlayableCards.push(r1)
+                }
+            }
             } else if ([30, 31, 32, 33].includes(fixed)) {
                 rCards = remainingArray.filter(ra => [30, 31, 32, 33].includes(ra));
                 rCards.unshift(fixed);
@@ -5309,7 +5369,14 @@ if(acceptedPlay.length > 1 && playerCards.length == 0 &&  [30, 31, 32, 33, 34, 3
   lastPlay = null,
   duelId = null,
 )*/
-    kadiPlay(19,playerCards,cardless,kadi,acceptedPlay,readyCards,cardRequest,cardRequested,null,duelId)
+    const resp = await kadiPlay(19,playerCards,cardless,kadi,acceptedPlay,readyCards,cardRequest,cardRequested,null,duelId)
+
+  if((JSON.parse(resp)).next_player == 19 || (JSON.parse(resp)).next_player == "19"){
+   
+await aiTurn(JSON.parse(resp), duelId);
+}
+
+
    // sendDataToGameProcessor(dataToSend);
 }
 
@@ -5317,7 +5384,7 @@ if(acceptedPlay.length > 1 && playerCards.length == 0 &&  [30, 31, 32, 33, 34, 3
 function sendDataToGameProcessor(data) {
     // Implement the logic to send the data to your game processor
     kadiPlay(data);
-    console.log('Data sent to game processor:', data);
+    /*(console.log('Data sent to game processor:', data);*/
 }
 
 // Placeholder function to simulate database access
@@ -5349,7 +5416,7 @@ function shuffle(array) {
 
 // Function to start the game and deal cards to AI
 function aiStart(readyCards) {
-    console.log(readyCards);
+    /*console.log(readyCards);*/
     let deck = readyCards.slice(); // Copy of readyCards
     shuffle(deck);
 

@@ -10,7 +10,7 @@
         <!--[if lt IE 9]>
             <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
-    <title>Kadi Game - Facebook Login</title>
+    <title>Kadi-Pro - Kenyan Poker</title>
 
 <link rel="apple-touch-icon" sizes="57x57" href="./uploads/apple-icon-57x57.png">
 <link rel="apple-touch-icon" sizes="60x60" href="./uploads/apple-icon-60x60.png">
@@ -46,6 +46,9 @@
 <!-- Animate.css -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 
+
+
+
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -73,13 +76,15 @@
 
   <div id="notifywin" class="notifywin-wrapper">
     <div class="notifywin-inner">
+
       <div class="notifywin-left">
+        <h1 class="logo-text"> Kadi Pro</h1>
         <div class="notifywin-icons">
 
-        <button class="btn btn-info" onclick="restartGame()"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="btn btn-info hicons" onclick="restartGame()"><i class="bi bi-arrow-clockwise"></i></button>
          <button class="btn btn-info" onclick="viewLeaderboard()"><i class="bi bi-trophy"></i></button>
-          <button class="btn btn-info" onclick="profileView()"><i class="bi bi-person-circle"></i></button>
-          <button class="btn btn-info" onclick="document.body.classList.toggle('dark-mode')"><i class="bi bi-moon" id="themeToggle"></i></button>
+          <!--<button class="btn btn-info" onclick="profileView()"><i class="bi bi-person-circle"></i></button>-->
+          <button class="btn btn-info" onclick="toggleTheme()"><i class="bi bi-moon" id="themeToggle"></i></button>
            <button class="btn btn-info" onclick="logout()" ><i class="bi bi-box-arrow-right"></i> 
         </button>
 
@@ -373,7 +378,7 @@
                                 <div class="modal-footer">
                                     <div class="form-group">
                                         <div class="col-sm-4 text-left">
-                                            <a class="btn btn-info btn-block " href=""> Go Home</a>
+                                            <button class="btn btn-info btn-block " id="end_game"> Go Home</button>
                                         </div>
                                         <div class="col-sm-8">
                                             
@@ -523,7 +528,7 @@ var tutorial_count = 0;
 
 <script type="text/javascript">
   
- console.log(db);
+
 
        $(document).ready(function() {
 
@@ -533,6 +538,8 @@ var tutorial_count = 0;
       playerID = storedPlayerID;
       playerName = localStorage.getItem("playerName") || "Player";
       playerPhoto = localStorage.getItem("playerPhoto") || "";
+        $('#player-pic').attr('src',playerPhoto);
+        $('.player-name').text(playerName);
       checkForInvitedGame(playerID);
     } else {
       $('#authModal').modal({
@@ -540,7 +547,41 @@ var tutorial_count = 0;
         keyboard: false
       });
     }
-  
+  $('#play_again').click(function(){
+    localStorage.removeItem('activeGame');
+    localStorage.removeItem('duel');
+    localStorage.removeItem('kadi_plays');  
+    localStorage.removeItem('registrationData1');   
+    localStorage.removeItem('registrationData2');
+    if(play_type =="single_player"){
+            play_type = 'single_player';
+    $('#game_selection').modal('hide');  
+//localStorage.clear();
+kadiSetup();
+kadi_play_setup();
+check_readiness();
+tutorial2(tutorial_count);
+    }
+    else{
+    $('#game_selection').modal({backdrop: 'static',
+  keyboard: false  });
+
+    $('#game_selection').modal('show');
+}
+  })
+  $('#end_game').click(function(){
+localStorage.removeItem('activeGame');
+localStorage.removeItem('duel');
+localStorage.removeItem('kadi_plays');  
+localStorage.removeItem('registrationData1');   
+localStorage.removeItem('registrationData2');
+ 
+     $('#game_selection').modal({backdrop: 'static',
+  keyboard: false  });
+
+    
+    
+  })
      
 
    /* $('#game_selection').modal('show');
@@ -564,7 +605,11 @@ var tutorial_count = 0;
 //Buttons for coninuing game
 document.getElementById("cancelGameBtn").addEventListener("click", function() {
    
-    localStorage.clear();
+    localStorage.removeItem('activeGame');
+    localStorage.removeItem('duel');
+    localStorage.removeItem('kadi_plays');  
+    localStorage.removeItem('registrationData1');   
+    localStorage.removeItem('registrationData2');
     $('#continueGame').modal('hide');
     $('#game_selection').modal({backdrop: 'static',
   keyboard: false  });
@@ -575,7 +620,7 @@ document.getElementById("continueGameBtn").addEventListener("click", function() 
     $('#continueGame').modal('hide');
    setup_reset(duel_id);
    check_play2(duel_id);
-   console.log(play_state)
+   /*console.log(play_state)*/
   
 });
 // Select play mode
@@ -617,7 +662,11 @@ tutorial2(tutorial_count);
         if(a=='play_random'){
   play_type = 'multi_player';
             opponent = 'friend';
-        localStorage.clear();
+        localStorage.removeItem('activeGame');
+    localStorage.removeItem('duel');
+    localStorage.removeItem('kadi_plays');  
+    localStorage.removeItem('registrationData1');   
+    localStorage.removeItem('registrationData2');
 kadiSetup();
 
 
@@ -773,12 +822,12 @@ function check_readiness() {
    // check if all are onboard
 if( p_status == 'playing'){
 
-alert('hello')
+
 check_play2(duel_id);
 start_play =true;
 }
 else{
-alert('hello2')
+
 start_playing();
 check_play(duel_id);
 if(opponent == "friend"){
@@ -790,10 +839,10 @@ if(opponent == "friend"){
 
 
 function start_playing(){
-console.log(current_player);
+/*console.log(current_player);
 console.log(start_play);
 console.log(play_state);
-console.log(user);
+console.log(user);*/
 if(start_play == false  && play_state =='starting' && user == current_player ){
 
 var start_cards =shuffleArray([30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53]);
@@ -801,7 +850,7 @@ var start_cards =shuffleArray([30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,4
 
 var stl =start_cards.length;
 begin_card_index =start_cards[stl -1];
-console.log(begin_card_index);
+/*console.log(begin_card_index);*/
 var begin_card ='card_'+ begin_card_index;
 var last_play =begin_card_index;
 
@@ -859,7 +908,7 @@ $('.playing-card').fadeOut(1000, function() {
 });
 plays.push(begin_card_index);
 ready_cards = shuffleArray(ready_cards);
-console.log(ready_cards)
+/*console.log(ready_cards)*/
 for(i=0; i<=3;i++){
 
 my_cards.push(ready_cards[i]);
@@ -910,7 +959,7 @@ let kadiPlays;
 let reg2;
 let duelData;
 
-alert('hello')
+
 if(play_type == 'single_player'){
 
 kadiPlays = JSON.parse(localStorage.getItem('kadi_plays')) || [];
@@ -940,13 +989,13 @@ db.ref("games/" + duel_id + "/kadi_plays").once("value", function(snapshot) {
    db.ref("games/" + duel_id + "/duel").once("value", function(snapshot) {
     if (snapshot.exists()) {
         duelData = snapshot.val();
-        console.log("Duel Data Loaded:", duelData);
+        /*console.log("Duel Data Loaded:", duelData);*/
 
         // Fetch Kadi Plays AFTER duelData is available
         db.ref("games/" + duel_id + "/kadi_plays").once("value", function(snapshot) {
             if (snapshot.exists()) {
                 kadiPlays = snapshot.val();
-                console.log("Kadi Plays Loaded:", kadiPlays);
+                /*console.log("Kadi Plays Loaded:", kadiPlays);*/
 
                 // Now that both duelData and gameData are ready, process them
                 
@@ -997,7 +1046,7 @@ async function check_play(duel_id) {
     try {
       const kadiPlays = await getKadiPlays(duel_id);
       if (kadiPlays) {
-        console.log("Kadi Plays Loaded:", kadiPlays);
+        /*console.log("Kadi Plays Loaded:", kadiPlays);*/
         play_state = kadiPlays.play_status;
 
         ready_cards = kadiPlays.ready_cards;
@@ -1010,7 +1059,7 @@ async function check_play(duel_id) {
 
         let lastPlay = lastPlayArray || [];
         const lpl = lastPlay.length;
-        console.log("Last play length:", lpl);
+        /*console.log("Last play length:", lpl);*/
 
         if (lpl > 0 && lastPlay[0].play.length > 0) {
           begin_card_index = lastPlay[0].play[0];
@@ -1029,7 +1078,7 @@ async function check_play(duel_id) {
 
             for (let t = s; t >= 0; t--) {
               if (
-                action.card_requests === "true" &&
+                lastPlay[i].card_requests === "true" &&
                 [0, 1, 2, 3].includes(lpla[t])
               ) {
                 begin_card_index = parseInt(lpla[t]);
@@ -1042,7 +1091,7 @@ async function check_play(duel_id) {
                 break;
               } else {
                 if (
-                  (action.card_requests !== "true" &&
+                  (lastPlay[i].card_requests !== "true" &&
                     ![0, 1, 2, 3].includes(lpla[t])) ||
                   (lpla[t] !== 28 &&
                     lpla[t] !== 29 &&
@@ -1058,14 +1107,14 @@ async function check_play(duel_id) {
         }
 
         prev_play = [begin_card_index];
-        console.log(prev_play)
-        console.log(play_state)
+        /*console.log(prev_play)
+        console.log(play_state)*/
         if (play_state === "playing") {
           start_play = true;
           clearInterval(x); // Clear here to avoid duplicate calls
           check_play2(duel_id);
         } else if (play_state === "starting_others") {
-          console.log("Starting Others:", play_state);
+          /*console.log("Starting Others:", play_state);*/
           start_playing();
         }
       }
@@ -1103,7 +1152,7 @@ let last_play = kppo || []
 let lpl = last_play.length;
 
     const lastPlay =Array.isArray(last_play)? last_play: JSON.parse(last_play);
-    const cardless = duel.cardless_status;
+    const cardless = ((duel.cardless_status).length >0 ?true:false);
     const kadi = duel.kadi_status;
     const playsNo = (lastPlay).length;
     
@@ -1116,11 +1165,11 @@ let lpl = last_play.length;
     // Determine the timeout status
    // const timeoutT = localStorage.getItem('timeout'); // Assuming timeout is also stored
    // const timeout = (Date.now() < timeoutT) ? 'true' : 'false';
-console.log();
+
     if (playsNo >= 2) {
         for (let i = playsNo - 1; i > 0; i--) {
             const play =lastPlay[i].play;
-            if (play[play.length - 1] !== 'picked_card' && lastPlay[i].player_fined !== 1) {
+            if (play[play.length - 1] !== 'picked_card' && lastPlay[i].player_fined != '1') {
                 playableCard = play[play.length - 1];
                 break;
             }
@@ -1154,7 +1203,7 @@ async function setup_reset(duel_id){
 const lastCard = await game_info(duel_id);
 let my_c =  await getMyCards( play_type);
 my_cards =JSON.parse(my_c);
-console.log(my_cards);
+
 var begin_card ='card_'+ lastCard
 $('.playing-card').fadeOut(1000, function() {
     $(this).attr('id', begin_card);  
@@ -1185,7 +1234,7 @@ function check_play2(duel_id){
 setInterval(async function() {
     
                  const msg =JSON.parse(await kadiCheckPlay(duel_id));
-                 
+                
                  play_state = msg.play_status;
                  player_fined =msg.player_fined;
                  ready_cards = Array.isArray(msg.ready_cards)?msg.ready_cards:JSON.parse(msg.ready_cards);
@@ -1232,8 +1281,8 @@ else{
              }/*Add only if there is new play else this will not run as  number of plays will continously add*/
                  picked_fine =false;
                  card_picked =false;
-                 /*cardless = msg.cardless;
-                 kadi =msg.kadi;*/
+                 cardless = msg.cardless;
+                 kadi =msg.kadi;
                  card_picked =false;
                  picked_fine =false;
                  
@@ -1250,6 +1299,16 @@ else{
                           $('#winner_text').text(msg.current_player_name + ' have been asked to pick '+msg.player_fined+' card/s');
  /*$( "#notifywin" ).toggle( "slide" );*/
                         my_fine = msg.player_fined;
+                    }
+                    
+                    if(to_pick !=user && msg.player_fined == '1'){
+                        
+                        $('.playing-card').fadeOut(1000, function() {
+    $(this).attr('id', 'card_'+msg.playable_card);  
+    $(this).slideDown(1000);
+});
+                          showCustomAlert('Previous player has been fined for foul play.');;
+ 
                     }
                    }
                    else{
@@ -1286,7 +1345,7 @@ allow_change = false;
 $('.select-card').click(function(){
     card_requested =$(this).attr('id');
     $('#card_request_modal').modal('hide');
-    alert('You have requested '+card_requested);
+    showToast('You have requested '+card_requested);
 })
 
 
@@ -1419,7 +1478,7 @@ var pcd  =todragI.split('_');
 var ptal = play_type_array.length;
     if(to_pick == user && ([12,13,14,15,16,17,18,19,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53]).includes(parseInt(pcd[1])) ){
 
-        alert('This play is not allowed');
+        showToast('This play is not allowed');
     }
 
    
@@ -1479,7 +1538,7 @@ if(to_pick == user && [0,1,2,3].includes(parseInt(pcd[1]))){
         play_type_array.push('jump');
         }*/
 if(p_allowed == false){
-    alert('You are not allowed to play this way');
+    showToast('You are not allowed to play this way');
 }
 if(p_allowed == true){
     var current_card =0;
@@ -1539,7 +1598,7 @@ dragging = null;
 }
 else{
 /*console.log(card_picked);*/
-alert('You have picked a card');
+showToast('You have picked a card');
 
 }
 /*}
@@ -1567,11 +1626,11 @@ var questions =[12,13,14,15,16,17,18,19];
 var ptal = play_type_array.length;
 var ml = my_play.length;
  
-console.log(
+/*console.log(
 
     ( my_play.length==0 || (card_picked==false && ml>0 && questions.includes(parseInt(my_play[ml-1]))
     ) || (to_pick ==user && my_fine >0) )
-     && picked_fine == false);
+     && picked_fine == false);*/
 
 
 
@@ -1599,7 +1658,7 @@ $('#h'+(no_cards-1)).after('<div class="holdin-p" id="h'+new_card+'" style="heig
 if(to_pick == user){
     my_fine  = my_fine-1;
 }
-console.log(shuffled_rc);
+
 shuffled_rc.shift();
 
 ready_cards = shuffled_rc;
@@ -1624,13 +1683,13 @@ play_type_array.push('picked_card');
 
 }
 else{
-    alert('You have picked a card');
+    showToast('You have picked a card');
 }
 
 
 }
 else{
-    alert('Not your turn yet');
+    showToast('Not your turn yet');
 }
 
 
@@ -1688,13 +1747,13 @@ play_type_array.pop();
 
 }
 else{
-    alert('You have already picked a card');
+   showToast('You have already picked a card');
 
 }
 
 }
 else{
-    alert('You have not played');
+   showToast('You have not played');
 }
 /*}
 else{
@@ -1710,7 +1769,7 @@ if(current_player == user){
 kadi = true;
 }
 else{
-    alert('Not your turn yet');
+    showToast('Not your turn yet');
 }
 
 });
@@ -1725,15 +1784,15 @@ else{
         var ace = [0, 1, 2, 3];
 
         if (ml == 0 && card_picked == false) {
-            alert('You need to play first');
+            showToast('You need to play first');
         } else {
             if (card_picked == false && questions.includes(parseInt(my_play[ml - 1]))) {
-                alert('You need to pick a card then press play');
+                showToast('You need to pick a card then press play');
                 submit_play = false;
             }
             if (to_pick == user && my_fine > 0) {
                 if (my_play[ml - 1] == 'picked_card') {
-                    alert('You haven\'t picked all cards');
+                    showToast('You haven\'t picked all cards');
                     submit_play = false;
                 }
             }
@@ -1769,7 +1828,7 @@ else{
                     card_requested,   // cardRequested
                     lply             // lastPlay
                 );
-console.log(response);
+
             
                 // Handle the response
                 play_state = JSON.parse(response).play_status; // Assuming kadiPlay returns play_status
@@ -1782,10 +1841,10 @@ console.log(response);
                 } else {
                     if (JSON.parse(response).to_fine == 'self') {
                         if (parseInt(JSON.parse(response).fine) == 1 && JSON.parse(response).next_player != user) {
-                            alert('hello');
+                           
                             var fined_card = JSON.parse(response).fined_card;
                             var lp = prev_play.length;
-alert(prev_play)
+
                             $('.playing-card').fadeOut(1000, function() {
                                 $(this).attr('id', 'card_' + prev_play[lp - 1]);
                                 $(this).slideDown(1000);
@@ -1835,7 +1894,7 @@ alert(prev_play)
                     prev_play = [];
                     card_picked = false;
                     kadi = false;
-                    console.log(JSON.parse(response).next_player)
+                    
 if(JSON.parse(response).next_player == 19 || JSON.parse(response).next_player == "19"){
    
 await aiTurn(JSON.parse(response), duel_id);
@@ -1889,14 +1948,14 @@ async function getMyCards( play_type) {
     let all_cards = [];
 
     if (play_type === "single_player") {
-        console.log("Fetching from Local Storage...");
+        
 
         let myCards = JSON.parse(localStorage.getItem('registrationData2'))?.my_cards || [];
 
         return myCards
 
     } else {
-        console.log("Fetching from Firebase...");
+    
 
         try {
             const regRef = db.ref(`games/${duel_id}/registrationData`);

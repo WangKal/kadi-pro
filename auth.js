@@ -143,7 +143,7 @@ async function resetPassword() {
 
   try {
     await auth.sendPasswordResetEmail(email);
-    alert("Reset email sent!");
+    showToast("Reset email sent!");
     showForm("loginForm");
   } catch (err) {
     showToast(err.message);

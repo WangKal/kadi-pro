@@ -76,7 +76,7 @@ else{
   // Update game state based on current play status
   if (currentGameData.play_status === 'playing') {
     const lastPlay = currentGameData.last_play || [];
-
+/*console.log(lastPlay);*/
     if (lastPlay.length > 1) {
       // Process last play to determine playable card and other status flags
       let playableCard = lastPlay[0].play;
@@ -128,13 +128,13 @@ else{
    db.ref("games/" + duel_id + "/duel").once("value", function(snapshot) {
     if (snapshot.exists()) {
         duelData = snapshot.val();
-        console.log("Duel Data Loaded:", duelData);
+       /* console.log("Duel Data Loaded:", duelData);*/
 
         // Fetch Kadi Plays AFTER duelData is available
         db.ref("games/" + duel_id + "/kadi_plays").once("value", function(snapshot) {
             if (snapshot.exists()) {
                 gameData = snapshot.val();
-                console.log("Kadi Plays Loaded:", gameData);
+                /*console.log("Kadi Plays Loaded:", gameData);*/
 
                 // Now that both duelData and gameData are ready, process them
                 
@@ -163,7 +163,7 @@ else{
 function processGameData(duelData, gameData) {
   
 // Function to process game data after both Firebase calls are complete
-console.log(gameData);
+/*console.log(gameData);*/
 
   // If no data for the current duel, initialize it
   if (gameData === undefined) {
@@ -174,7 +174,7 @@ console.log(gameData);
     const playType = duelData[play_type]; // Default play type or retrieve from some source
     const allPlayingCards = Array.from({ length: 54 }, (_, i) => i); // Array [0, 1, ..., 53]
 
-console.log(duelPlayers)
+/*console.log(duelPlayers)*/
 
     gameData = {
       duel_id:duel_id,
@@ -203,7 +203,7 @@ console.log(duelPlayers)
  p_status = 'starting';
  play_state = 'starting';
  current_player = duelPlayers[duelPlayers.length - 1];
- console.log(current_player);
+ /*console.log(current_player);*/
   }
 else{
   // Fetch the current game data
@@ -246,7 +246,7 @@ else{
     numberOfPlays = null;
        p_status = 'starting';
         play_state = 'starting';
-        alert("hello why")
+      
         current_player = user;
  db.ref("games/" + duel_id+ "/kadi_plays").update({
     players: duelPlayers,
@@ -315,7 +315,7 @@ $('.card').each(function() {
         cardless: false,
         play: [begin_card_index]
     }]);
-console.log(duel);
+/*console.log(duel);*/
     // Check if the current player is the one who should start
     if (duel.playing === user) {
         const updatedDuel = {
@@ -361,7 +361,7 @@ regRef.once("value", function(snapshot) {
         if (playerKey) {
             db.ref(`games/${duel_id}/registrationData/${playerKey}/my_cards`)
                 .set(JSON.stringify(my_cards))  
-                .then(() => console.log(`Updated cards for ${user}:`, my_cards))
+               /* .then(() => console.log(`Updated cards for ${user}:`, my_cards))*/
                 .catch(err => console.error("Error updating cards:", err)); 
         } else {
             console.error("User ID not found in registrationData.");
@@ -454,4 +454,20 @@ function showToast(message, duration = 3000) {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300); // Wait for transition
   }, duration);
+}
+function toggleTheme() {
+  const body = document.body;
+  const icon = document.getElementById("themeToggle");
+
+  const isLight = body.getAttribute("data-theme") === "light";
+
+  if (isLight) {
+    body.setAttribute("data-theme", "dark");
+    icon.classList.remove("bi-moon");
+    icon.classList.add("bi-sun");
+  } else {
+    body.setAttribute("data-theme", "light");
+    icon.classList.remove("bi-sun");
+    icon.classList.add("bi-moon");
+  }
 }

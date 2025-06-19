@@ -37,9 +37,9 @@ async function getTopPlayers() {
                 });
             });
 
-            console.log("Top Players:");
+            /*console.log("Top Players:");*/
             data.forEach((entry, index) => {
-                console.log(`${index + 1}. ${entry.name} - ${entry.score} points`);
+                /*console.log(`${index + 1}. ${entry.name} - ${entry.score} points`);*/
             });
 
             // Optionally render in UI
@@ -75,10 +75,10 @@ async function getPlayerRank(playerID) {
             if (rank > 0) {
                 const player = players[rank - 1];
                 const result = `Your Rank: ${rank} | Score: ${player.score}`;
-                console.log(result);
+                /*console.log(result);*/
                 updatePlayerRankUI(result); // Optional
             } else {
-                console.log("You are not ranked yet.");
+                /*console.log("You are not ranked yet.");*/
                 updatePlayerRankUI("You are not ranked yet."); // Optional
             }
         })
@@ -109,7 +109,7 @@ async function updateLeaderboard(playerID, playerName, score) {
             });
         })
         .then(() => {
-            console.log("Leaderboard updated for", playerName, "with score:", score);
+            /*console.log("Leaderboard updated for", playerName, "with score:", score);*/
         })
         .catch(error => {
             console.error("Error updating leaderboard:", error);
@@ -122,7 +122,7 @@ async function showInterstitialAd() {
     try {
         if (interstitialAd) {
             await interstitialAd.showAsync();
-            console.log("Interstitial Ad displayed");
+            /*console.log("Interstitial Ad displayed");*/
         } else {
             console.warn("Interstitial Ad not ready");
         }
@@ -135,7 +135,7 @@ async function showRewardedAd() {
     try {
         if (rewardedAd) {
             await rewardedAd.showAsync();
-            console.log("Rewarded Ad displayed - Give reward");
+            /*console.log("Rewarded Ad displayed - Give reward");*/
             givePlayerReward(); // Implement reward logic
         } else {
             console.warn("Rewarded Ad not ready");
