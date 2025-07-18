@@ -1,3 +1,5 @@
+
+
 function restartGame(){
   location.reload();
 }
@@ -128,7 +130,7 @@ else{
    db.ref("games/" + duel_id + "/duel").once("value", function(snapshot) {
     if (snapshot.exists()) {
         duelData = snapshot.val();
-       /* console.log("Duel Data Loaded:", duelData);*/
+        console.log("Duel Data Loaded:", duelData);
 
         // Fetch Kadi Plays AFTER duelData is available
         db.ref("games/" + duel_id + "/kadi_plays").once("value", function(snapshot) {
@@ -138,12 +140,17 @@ else{
 
                 // Now that both duelData and gameData are ready, process them
                 
-            processGameData(duelData, gameData);
-            check_readiness();
+            processGameData(duelData, gameData).then(() => { 
+                check_readiness();
+
+            });
+            
             }else{
 
-            processGameData(duelData, gameData);
-            check_readiness();
+            processGameData(duelData, gameData).then(() => { 
+                check_readiness();
+
+            });
             }
         });
     }
@@ -160,7 +167,7 @@ else{
 }
 
 
-function processGameData(duelData, gameData) {
+async function processGameData(duelData, gameData) {
   
 // Function to process game data after both Firebase calls are complete
 /*console.log(gameData);*/
@@ -170,7 +177,7 @@ function processGameData(duelData, gameData) {
   
  
     // Assuming these variables are pulled from some initial setup or configuration
-    const duelPlayers =[duelData.player_one,duelData.player_two]  //getDuelPlayers(duelId); Replace this with logic to get duel players
+    const duelPlayers =duelData.players//[duelData.player_one,duelData.player_two]  //getDuelPlayers(duelId); Replace this with logic to get duel players
     const playType = duelData[play_type]; // Default play type or retrieve from some source
     const allPlayingCards = Array.from({ length: 54 }, (_, i) => i); // Array [0, 1, ..., 53]
 
@@ -179,7 +186,7 @@ function processGameData(duelData, gameData) {
     gameData = {
       duel_id:duel_id,
       players: duelPlayers,
-      playing: duelPlayers[duelPlayers.length - 1],
+      //playing: duelPlayers[duelPlayers.length - 1],
       play_direction: 'forward',
       play_status: 'starting',
       kadi_status: [],
@@ -194,6 +201,7 @@ function processGameData(duelData, gameData) {
       kadi: false,
       cardless: false,
       number_of_plays: 0,
+      players_ready:0
     };
 
     // Save initial data to localStorage
@@ -202,7 +210,7 @@ function processGameData(duelData, gameData) {
  //console.log(localStorage);
  p_status = 'starting';
  play_state = 'starting';
- current_player = duelPlayers[duelPlayers.length - 1];
+ //current_player = duelPlayers[duelPlayers.length - 1];
  /*console.log(current_player);*/
   }
 else{
@@ -210,7 +218,7 @@ else{
   let currentGameData = gameData;
 
   // Update game state based on current play status
-  if (currentGameData.play_status === 'playing') {
+  if (currentGameData.play_status == 'playing') {
     const lastPlay = currentGameData.last_play || [];
 
     if (lastPlay.length > 1) {
@@ -235,9 +243,9 @@ else{
     // Save updated game state to localStorage
   //  localStorage.setItem('gameData', JSON.stringify(gameData));
 
-  } else if (currentGameData.play_status === 'starting') {
+  } else if (currentGameData.play_status == 'starting') {
     // Game is in starting phase; reset relevant fields
-     const duelPlayers =[duelData.player_one,duelData.player_two]  //
+     const duelPlayers =duelData.players//[duelData.player_one,duelData.player_two]  //
     my_cards = [];
     plays = [];
     to_pick = null;
@@ -246,11 +254,21 @@ else{
     numberOfPlays = null;
        p_status = 'starting';
         play_state = 'starting';
-      
-        current_player = user;
+console.log('starting');      
+        if(parseInt(duelData.no_players) == parseInt(duelData.joined)){
+ console.log('joining');   
+ /*db.ref("games/" + duel_id+ "/duel").update({
+    start:true
+
+ });*/ 
+ current_player = duelPlayers[duelPlayers.length - 1];
+                  
+        }
+        console.log(duel_id)
  db.ref("games/" + duel_id+ "/kadi_plays").update({
     players: duelPlayers,
-    playing: user
+    playing: duelPlayers[duelPlayers.length - 1]
+
  })
     // Save updated starting state to localStorage
     //localStorage.setItem('gameData', JSON.stringify(gameData));
@@ -323,9 +341,9 @@ $('.card').each(function() {
             my_cards: JSON.stringify(my_cards),
             last_play: lastPlay,
             players: duel.players, // Keep player logic as it is
-            play_status: 'starting_others',//duel.play_status,
-            game_end: false
-            //players_ready: duel.players_ready + 1 Future for more than 2 players
+            play_status: (parseInt(duel.players_ready + 1)==duel.joined)?'playing':'starting_others',//duel.play_status,
+            game_end: false,
+            players_ready: duel.players_ready + 1 //Future for more than 2 players
         };
 
     // const updatedKadiPlays = kadiPlays.map(play => play.duel_id === duelId ? updatedDuel : play);
@@ -352,20 +370,25 @@ regRef.once("value", function(snapshot) {
         let playerKey = null;
 
         // Find the correct player (player1 or player2) based on userID
-        if (regData.player1 && regData.player1.userID === user) {
+        /*if (regData.player1 && regData.player1.userID === user) {
             playerKey = "player1";
         } else if (regData.player2 && regData.player2.userID === user) {
             playerKey = "player2";
-        }
+        }*/
 
-        if (playerKey) {
+db.ref(`games/${duel_id}/registrationData/${user}/my_cards`)
+                .set(JSON.stringify(my_cards))  
+               /* .then(() => console.log(`Updated cards for ${user}:`, my_cards))*/
+                .catch(err => console.error("Error updating cards:", err));
+
+      /*  if (playerKey) {
             db.ref(`games/${duel_id}/registrationData/${playerKey}/my_cards`)
                 .set(JSON.stringify(my_cards))  
                /* .then(() => console.log(`Updated cards for ${user}:`, my_cards))*/
-                .catch(err => console.error("Error updating cards:", err)); 
+              /*  .catch(err => console.error("Error updating cards:", err)); 
         } else {
             console.error("User ID not found in registrationData.");
-        }
+        }*/
     } else {
         console.error("Game not found or missing registrationData.");
     }
@@ -470,4 +493,12 @@ function toggleTheme() {
     icon.classList.remove("bi-sun");
     icon.classList.add("bi-moon");
   }
+}
+
+function getQueryParam(param) {
+    const queryString = window.location.search;
+    if (!queryString) return null;
+
+    const urlParams = new URLSearchParams(queryString);
+    return urlParams.get(param);
 }

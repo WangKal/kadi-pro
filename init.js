@@ -3,63 +3,67 @@ function checkForInvitedGame(playerID) {
 /*console.log(playerID);*/
 
     /*** Look at the url if its the duel id as this player may be anonymous you can include a quick sign in ***/
-
+    const gameID = getQueryParam("game");
+    
     const storedGame = JSON.parse(localStorage.getItem("activeGame"));
+//alert(gameID);
+    if (storedGame && storedGame.status === "on" && storedGame.host == playerID && gameID==null) {
+         alert(gameID)
 
-    if (storedGame && storedGame.status === "on" && storedGame.host == playerID) {
         /*console.log("Resuming stored game:", storedGame.gameID);*/
         if(storedGame.play_type == 'single_player'){
-        duel_id = storedGame.gameID;
-        play_type = "single_player";
-        user = playerID;
-$('#continueGame').modal({backdrop: 'static',
-  keyboard: false  });
-        
-
-        }
-        else{
-        duel_id = storedGame.gameID;
-        play_type = "multi_player";
-        opponent = storedGame.opponent;
-        user = playerID;
-        if(storedGame.friendSetup == false){
+            duel_id = storedGame.gameID;
+            play_type = "single_player";
+            user = playerID;
             $('#continueGame').modal({backdrop: 'static',
-  keyboard: false  });
-        }
+            keyboard: false  });
+            
+
+            }
         else{
+            duel_id = storedGame.gameID;
+            play_type = "multi_player";
+            opponent = storedGame.opponent;
+            user = playerID;
+            if(storedGame.friendSetup == false){
+            $('#continueGame').modal({backdrop: 'static',
+            keyboard: false  });
+            }
+            else{
             storedGame.friendSetup = false;
             localStorage.setItem("activeGame", JSON.stringify(storedGame));
-        }
-         check_readiness();    
+            }
+            check_readiness();    
         }
        
         return;
     }
-if(storedGame?.gameID){
-    db.ref("games")
-        .orderByChild("duel/gameID")
-        .equalTo(storedGame.gameID)
-        .limitToFirst(1)
-        .once("value", function(snapshot) {
-            if (snapshot.exists()) {
-                const gameID = Object.keys(snapshot.val())[0];
-                const gameData = snapshot.val()[gameID];
+
+if(gameID){
+    alert(gameID)
+    db.ref("games/" + gameID)
+  .once("value", function(snapshot) {
+    if (snapshot.exists()) {
+               
+                
+                const gameData = snapshot.val();
 
                 // Check if the game is finished
-                if (gameData.status === "finished") {
+                if (gameData.status == "finished") {
                     /*console.log("Previous game is complete. Creating a new game...");*/
                     createNewGameWithFriend(playerID);
                     return false;
                 }
-/*console.log('whats happening')*/
+                /*console.log('whats happening')*/
                 // If the game is still active, join it
+                console.log(gameID);
                 joinFriendGame(gameID, playerID);
                 return true;
             }
             else{
                 $('#game_selection').modal({backdrop: 'static',
-  keyboard: false  });
-            }
+                keyboard: false  });
+                }
 
             return false;
         });
@@ -136,7 +140,7 @@ const registrationData = {
         // Register challenges for both players
         registerChallenge('registrationData1',registrationData);
         registerChallenge('registrationData2',registrationData2);
-const gameData = {
+        const gameData = {
         gameID: duel_id,
         host: playerID,
         invitee: null,
@@ -144,8 +148,8 @@ const gameData = {
         status: "on",
         friendSetup:true,
         createdAt: Date.now()
-    };
-    localStorage.setItem("activeGame", JSON.stringify(gameData));
+        };
+        localStorage.setItem("activeGame", JSON.stringify(gameData));
         /*console.log(localStorage);*/
     } else {
         const challengeID = 11; // Another static challenge ID
@@ -173,8 +177,13 @@ if (opponent == 'random'){
     });*/
 
     // Create a test game
-    findOrCreateGame(playerID, playerName);
+    if(create_a_new == true){
 
+createNewGame(playerID, playerName);
+    }
+    else{
+    findOrCreateGame(playerID, playerName);
+}
 }
 else{
 
@@ -223,6 +232,7 @@ else{
 
 function findOrCreateGame(playerID, playerName) {
     db.ref("games").orderByChild("status").equalTo("starting").limitToFirst(1).once("value", function(snapshot) {
+       
         if (snapshot.exists()) {
             // Join the first available game
             const gameID = Object.keys(snapshot.val())[0];
@@ -234,94 +244,22 @@ function findOrCreateGame(playerID, playerName) {
     });
 }
 
-  function joinGame(gameID, playerID,playerName) {
-    duel_id = gameID;
-    db.ref("games/" + gameID).once("value", function(snapshot) {
-        if (snapshot.exists()) {
-            const gameData = snapshot.val();
-            const player1 = gameData.duel.player_one;
-            const player2 = gameData.duel.player_two;
-
-            if (player1 === playerID) {
-                /*console.log("Player is already Player 1, rejoining game...");*/
-                kadi_play_setup();
-                return; // Do nothing, player is already assigned
-            }
-
-            if (!player2) {
-                // Assign player as Player 2 if slot is empty
-                db.ref("games/" + gameID).update({
-                    "duel/player_two": playerID,
-                    "status": "starting"
-                });
-                db.ref("games/" + gameID + "/registrationData/player2").set({
-                    userID: playerID,
-                    challengeID: 10,
-                    status: "pending",
-                    my_cards: []
-                }).then(() => {
-                /*console.log("Player 2 added successfully:", playerID);*/
-                }).catch(err => {
-                console.error("Error updating registrationData for player 2:", err);
-                });
-                /*console.log("Joined game as Player 2:", gameID);*/
-                kadi_play_setup();
-            } else {
-                createNewGame(playerID, playerName);
-            }
-        }
-    });
-}
 
 
 
 
 
-function createNewGame(playerID, playerName) {
-    const gameID = db.ref("games").push().key;
-
-    db.ref("games/" + gameID).set({
-        duel_id: gameID,
-        status: "starting",
-        duel: {
-            player_one: playerID,
-            player_two: "",
-            player_one_ready: true,
-            player_two_ready: false,
-            play_type: play_type
-        },
-        registrationData: {
-            player1: {
-                userID: playerID,
-                challengeID: 10,
-                status: "pending",
-                my_cards: []
-            }
-        },
-        
-    });
-        
-    duel_id = gameID;
-    /*console.log("New game created:", gameID);*/
-    const gameData = {
-        gameID: gameID,
-        host: playerID,
-        invitee: null,
-        play_type:play_type,
-        status: "on",
-        opponent:'random',
-        friendSetup:false,
-        createdAt: Date.now()
-    };
-    localStorage.setItem("activeGame", JSON.stringify(gameData));
-    /*console.log("Created a new random game:", duel_id);*/
-    kadi_play_setup();
-}
-/*
-async function inviteFriendToGame() {
+function inviteFriendToGame(gameID) {
     try {
+
+
+        const shareMsg = `Join my Kadi game using this link: ${window.location.href}?game=${gameID}`;
+        const encodedMsg = encodeURIComponent(shareMsg);
+        const whatsappUrl = `https://wa.me/?text=${encodedMsg}`;
+        window.open(whatsappUrl, "_blank");
+
         // Open Facebook's friend selector
-        await FBInstant.context.chooseAsync();
+       /* await FBInstant.context.chooseAsync();
 
         // Get the selected friend's context ID
         const contextID = FBInstant.context.getID();
@@ -330,11 +268,11 @@ async function inviteFriendToGame() {
 
 
         // Create or find a game for the two players
-        findOrCreateGameWithFriend(FBInstant.player.getID(), contextID);
+        findOrCreateGameWithFriend(FBInstant.player.getID(), contextID);*/
     } catch (error) {
         console.error("Error inviting friend:", error);
     }
-}*/
+}
 
 function findOrCreateGameWithFriend(playerID, gameID) {
 
@@ -369,6 +307,59 @@ const gamesRef = db.ref("games");
 
 }
 
+
+
+
+function createNewGame(playerID, playerName) {
+    const gameID = db.ref("games").push().key;
+  
+
+    db.ref("games/" + gameID).set({
+        duel_id: gameID,
+        status: "starting",
+        name:game_name,
+        description:game_description,
+        duel: {
+            player_one: playerID,
+            player_two: "",
+            player_one_ready: true,
+            player_two_ready: false,
+            players:[playerID],
+            play_type: play_type,
+            no_players:no_players,
+            joined:1,
+            start:false
+        },
+        registrationData: {
+            [playerID]: {
+                userID: playerID,
+                challengeID: 10,
+                status: "pending",
+                my_cards: []
+            }
+        },
+        
+    });
+        
+    duel_id = gameID;
+    /*console.log("New game created:", gameID);*/
+    const gameData = {
+        gameID: gameID,
+        host: playerID,
+        invitee: null,
+        play_type:play_type,
+        status: "on",
+        opponent:'random',
+        friendSetup:false,
+        createdAt: Date.now()
+    };
+    localStorage.setItem("activeGame", JSON.stringify(gameData));
+    /*console.log("Created a new random game:", duel_id);*/
+    kadi_play_setup();
+}
+
+
+
 function createNewGameWithFriend(playerID) {
     
 const gameID = db.ref("games").push().key;
@@ -376,22 +367,28 @@ const gameID = db.ref("games").push().key;
     db.ref("games/" + gameID).set({
         duel_id: gameID,
         status: "starting",
+        name:game_name,
+        description:game_description,
         duel: {
             player_one: playerID,
             player_two: "",
             player_one_ready: true,
             player_two_ready: false,
-            play_type: play_type
+            players:[playerID],
+            play_type: play_type,
+            no_players:no_players,
+            joined:1,
+            start:false
         },
         registrationData: {
-            player1: {
+            [playerID]: {
                 userID: playerID,
                 challengeID: 10,
                 status: "pending",
                 my_cards: []
             }
         },
-       
+        
     });
     duel_id = gameID;
     /*** InviteFriendToGame ***/
@@ -403,28 +400,85 @@ const gameID = db.ref("games").push().key;
         play_type:play_type,
         status: "on",
         opponent:'friend',
-        contextID: contextID,
+        //contextID: contextID,
         friendSetup:true,
         createdAt: Date.now()
     };
     localStorage.setItem("activeGame", JSON.stringify(gameData));
     kadi_play_setup();
+    inviteFriendToGame(duel_id)
 }
-function joinFriendGame(gameID, playerID) {
+
+
+
+  function joinGame(gameID, playerID,playerName) {
     duel_id = gameID;
     db.ref("games/" + gameID).once("value", function(snapshot) {
+        console.log(snapshot.exists());
         if (snapshot.exists()) {
             const gameData = snapshot.val();
-            const player1 = gameData.duel.player_one;
+            /*const player1 = gameData.duel.player_one;
             const player2 = gameData.duel.player_two;
 
             if (player1 === playerID) {
-                /*console.log("Player is already Player 1, rejoining game...");*/
+                //console.log("Player is already Player 1, rejoining game...");
                 kadi_play_setup();
                 return; // Do nothing, player is already assigned
             }
+*/
+  if (parseInt(gameData.duel.no_players) > parseInt(gameData.duel.joined)) {
+                // Assign player as Player 2 if slot is empty
+                const playersObject = gameData?.duel?.players || {};
+                const playersArray = Object.values(playersObject);
+                const updatedPlayers = playersArray.includes(playerID)? playersArray: [...playersArray, playerID];
+                db.ref("games/" + gameID).update({
+                    //"duel/player_two": gameData.duel.joined +1,
+                    "duel/players":updatedPlayers,
+                    "duel/joined": parseInt(gameData.duel.joined) +1,
 
-            if (!player2) {
+                    //"status": "starting"
+                });
+                db.ref("games/" + gameID + "/registrationData/"+playerID).set({
+                    userID: playerID,
+                    challengeID: 10,
+                    status: "pending",
+                    my_cards: []
+                }).then(() => {
+                console.log("Player 2 added successfully:", gameID);
+                }).catch(err => {
+                console.error("Error updating registrationData for player 2:", err);
+                });
+                /*console.log("Joined game as Player 2:", gameID);*/
+                kadi_play_setup();
+            } else {
+                showToast('Game is fully joined')
+                createNewGame(playerID, playerName);
+            }
+        }
+    });
+}
+
+
+
+
+
+
+function joinFriendGame(gameID, playerID) {
+    duel_id = gameID;
+    console.log(gameID)
+    db.ref("games/" + gameID).once("value", function(snapshot) {
+        if (snapshot.exists()) {
+            const gameData = snapshot.val();
+            /*const player1 = gameData.duel.player_one;
+            const player2 = gameData.duel.player_two;
+
+            if (player1 === playerID) {
+                /*console.log("Player is already Player 1, rejoining game...");
+                kadi_play_setup();
+                return; // Do nothing, player is already assigned
+            }*/
+
+           /* if (!player2) {
                 // Assign player as Player 2 if slot is empty
                 db.ref("games/" + gameID).update({
                     "duel/player_two": playerID,
@@ -436,16 +490,52 @@ function joinFriendGame(gameID, playerID) {
                     status: "pending",
                     my_cards: []
                 }).then(() => {
-                /*console.log("Player 2 added successfully:", playerID);*/
+                //console.log("Player 2 added successfully:", playerID);
+                }).catch(err => {
+                console.error("Error updating registrationData for player 2:", err);
+                });
+                //console.log("Joined game as Player 2:", gameID);
+                kadi_play_setup();
+            } else {
+                 /*console.log("Joined game as Player 2:", gameID);
+                //createNewGame(playerID, playerName);
+            }*/
+
+console.log((parseInt(gameData.duel.no_players) > parseInt(gameData.duel.joined)))
+  if (parseInt(gameData.duel.no_players) > parseInt(gameData.duel.joined)) {
+                // Assign player as Player 2 if slot is empty
+                const playersObject = gameData?.duel?.players || {};
+                const playersArray = Object.values(playersObject);
+                const updatedPlayers = playersArray.includes(playerID)? playersArray: [...playersArray, playerID];
+                db.ref("games/" + gameID).update({
+                    //"duel/player_two": gameData.duel.joined +1,
+                    "duel/players":updatedPlayers,
+                    "duel/joined": parseInt(gameData.duel.joined) +1,
+
+                    //"status": "starting"
+                });
+                db.ref("games/" + gameID + "/registrationData/"+playerID).set({
+                    userID: playerID,
+                    challengeID: 10,
+                    status: "pending",
+                    my_cards: []
+                }).then(() => {
+                console.log("Player 2 added successfully:", gameID);
                 }).catch(err => {
                 console.error("Error updating registrationData for player 2:", err);
                 });
                 /*console.log("Joined game as Player 2:", gameID);*/
                 kadi_play_setup();
             } else {
-                 /*console.log("Joined game as Player 2:", gameID);*/
-                //createNewGame(playerID, playerName);
+                showToast('Game is fully joined')
+                createNewGame(playerID, playerName);
             }
+
+
+
+
+
+
         }
     });
 
